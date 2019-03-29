@@ -1,0 +1,143 @@
+---
+title: "Experimental_Methodology"
+author: "Mark Paluta, Krysten Thompson, Chris Ventura"
+date: "March 10, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction / Background / Motivation
+
+< Background info on difficulties for older people finding housing >
+
+< This is important because XYZ >
+
+We would like to investigate how age affects replies when reaching out regarding a roommate posting on Craigslist. Specifically, we will investigate whether age has a statistically significant effect on:
+
+1) the odds of receiving a reply,
+2) the odds of receiving a favorable reply, and
+3) the response time of a reply
+
+Thus, we will be developing at least one model specification for each question.
+
+< Definition of terms? - reply, favorable reply, etc. >
+
+
+## The Ideal Experiment
+
+< both sexes, continuous array of ages, etc. >
+
+## Methodology
+
+We went on Craigslist for data collection activities approximately once per day for ___ days/weeks. We were not too concerned with the exact times or days we collected data since we were collecting a number of time-based covariates in order to not confound our results with any temporal effects. We did make a conscious effort to cover a broad range of variation in our temporal covariates by collecting at least once on every day of the week and a mix of morning, afternoon, and evening collections.
+
+Each time we began a collection activity, we would adhere to the following procedure:
+
+1) Open all postings since the last data collection (or fewer if subject to time constraints, prioritizing recent postings)
+2) Go through each post and throw out any that meet our exclusion criteria
+3) Obtain a count of the number of included (remaining) posts
+4) Randomize an array assigning these posts to our 27-year-old or 43-year-old persona.
+5) Beginning with the first persona in the array, log into their respective email account and begin emailing posters in order from most recent to least, recording covariates as we go
+
+Sufficiently later (make this clearer), we logged into the email accounts and recorded information about replies to our emails.
+
+### Pilot Study
+
+We conducted a pilot study for three days to identify any problems that may surface during the full study. The major things we learned from this pilot study were:
+
+1) VPNs are not particularly compatible with Craigslist. < elaborate >
+
+2) As a correlary to #2, maintaining too many personas would be very difficult due to concerns about tripping fraud algorithms and getting our real IP addresses blacklisted. As a result, we decided to limit our full study to 2 personas. We decided to imitate females as we made a guess that females would have higher response rates due to anecdotally more postings seeming open to females and an anecdotal guess that males would be more willing to live with females than females would be willing to live with males.
+
+3) Not all types of posts seemed appropriate for measuring effects on a typical applicant. Specifically, we recognized the following types of posts as atypical scenarios and decided to exclude them from the full study.
+
+#### Exclusion Criteria:
+
+  a) Posts with sexual implications including "friends with benefits", reduced rent in exchange for sex, 
+  b) Posts soliciting other favors in exchange for reduced rent such as babysitting
+  c) Posts for students only
+  d) Posts without an email option or posts explicitly stating that email replies will not be answered.
+  e) Posts explicitly stating males only
+
+
+ ...
+< Any further pilot study learnings >
+
+
+
+For each posting, we will note several covariates and we will give up to 48 (?) hours for a response.
+All postings will be considered valid except for:
+
+ -	Posts specifically seeking a certain age or sex (?)
+ -	Duplicate postings as recognized via images, post title, or body text
+
+## Data Collection
+
+```{r include=FALSE}
+df = read.csv("Data_Collection_Sheet.csv", fileEncoding="UTF-8-BOM")
+```
+
+We will collect a few types of information:
+
+1) Title and body content of the post to assist in identifying duplicates and to archive this data in case the post is taken down.
+```{r}
+colnames(df)[4:5]
+```
+
+2) Post metadata
+```{r}
+colnames(df)[c(3,6)]
+```
+
+3) Covariates that may themselves predict high or low response rate
+```{r}
+colnames(df)[7:10]
+```
+
+4) Which treatment was applied
+```{r}
+colnames(df)[11]
+```
+
+5) Timestamp information for our response
+```{r}
+colnames(df)[1:2]
+```
+
+6) Reply (outcome) information
+```{r}
+colnames(df)[12:13]
+```
+
+### Generate fake data to build analysis tools
+
+Building in a fake treatment effect where katie_27 gets more replies.
+
+```{r}
+set.seed(468)
+
+date_gen = function(N, st="2019/03/15", et="2019/03/30") {
+   st = as.POSIXct(as.Date(st))
+   et = as.POSIXct(as.Date(et))
+   dt = as.numeric(difftime(et,st,unit="sec"))
+   ev = sort(runif(N, 0, dt))
+   rt = st + ev
+   return(rt)
+}
+
+fake_df = data.frame(
+  "Posting.title" = rep(NA, 100),
+  "Posting.body.text" = rep(NA, 100),
+  "Posting.url" = rep(NA, 100),
+  "Post.timestamp" = date_gen(100),
+  "Listing.price" = runif(100, 300, 1000),
+  "Listing.type" = sample(c("house","apartment","condo",NA), 100, replace = TRUE),
+  "Treatment" = sample(c("katie_27","katie_43"), 100, replace = TRUE),
+)
+#fake_df$Post.timestamp[1]
+#fake_df$Post.timestamp[1] + 3600
+```
+

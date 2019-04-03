@@ -9,6 +9,10 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r libraries, message=FALSE, warning=FALSE}
+library(data.table)
+```
+
 ## Introduction / Background / Motivation
 
 < Background info on difficulties for older people finding housing >
@@ -135,9 +139,26 @@ fake_df = data.frame(
   "Post.timestamp" = date_gen(100),
   "Listing.price" = runif(100, 300, 1000),
   "Listing.type" = sample(c("house","apartment","condo",NA), 100, replace = TRUE),
-  "Treatment" = sample(c("katie_27","katie_43"), 100, replace = TRUE),
+  "Poster.gender" = sample(c("male","female",NA), 100, replace = TRUE),
+  "Poster.age" = sample(c(25:35,NA), 100, replace = TRUE),
+  "Treatment" = sample(c("katie_27","katie_43"), 100, replace = TRUE)
 )
-#fake_df$Post.timestamp[1]
-#fake_df$Post.timestamp[1] + 3600
+
+# Pretend email was sent at random time up to one day after post
+fake_df$Email.sent.datetime = fake_df$Post.timestamp + runif(100, 0, 3600*24)
+
+fake_df = as.data.table(fake_df)
+
+# Build fake logistic regression model to populate reply
+beta0 = -.3
+beta1 = .3
+log.odds = beta0 + beta1 * as.integer(fake_df$Treatment=="katie_27")
+prob = exp(log.odds) / (1 + exp(log.odds))
+fake_df$Reply = as.integer(prob > runif(100,0,1))
+
+# Pretend response was received at random time up to one day after our email
+fake_df$Reply.timestamp = fake_df$Email.sent.datetime + runif(100, 0, 3600*24)
 ```
+
+
 

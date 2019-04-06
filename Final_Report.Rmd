@@ -15,6 +15,9 @@ library(data.table)
 
 ## Introduction / Background / Motivation
 
+**Statement of the research question; why this is interesting to someone who is predisposed to be interested; what other people know about this; what (if any) obsrevational work has to say about this question**
+
+
 < Background info on difficulties for older people finding housing >
 
 < This is important because XYZ >
@@ -30,11 +33,22 @@ Thus, we will be developing at least one model specification for each question.
 < Definition of terms? - reply, favorable reply, etc. >
 
 
+
 ## The Ideal Experiment
 
 < both sexes, continuous array of ages, etc. >
 
 ## Methodology
+
+
+ **Clear statement of the experiment**
+
+    Research Design (using ROXO grammar)
+    Randomization engineering
+    Experimental materials (e.g. treatment materials)
+    Measurement of variables
+    Modeling choices
+**end**
 
 We went on Craigslist for data collection activities approximately once per day for ___ days/weeks. We were not too concerned with the exact times or days we collected data since we were collecting a number of time-based covariates in order to not confound our results with any temporal effects. We did make a conscious effort to cover a broad range of variation in our temporal covariates by collecting at least once on every day of the week and a mix of morning, afternoon, and evening collections.
 
@@ -79,6 +93,7 @@ All postings will be considered valid except for:
  -	Duplicate postings as recognized via images, post title, or body text
 
 ## Data Collection
+
 
 ```{r include=FALSE}
 df = read.csv("Data_Collection_Sheet.csv", fileEncoding="UTF-8-BOM")
@@ -161,4 +176,10 @@ fake_df$Reply.timestamp = fake_df$Email.sent.datetime + runif(100, 0, 3600*24)
 ```
 
 
+## Conclusions
+**Clear statement of results**
 
+    In text description of your results
+    Figures and tables that support your in text description
+    Clean, clear, well articulated relationships between your theory, your hypotheses, the numbers that your models produce, and the figures you present.
+**end**

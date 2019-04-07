@@ -19,6 +19,16 @@ library(data.table)
 
 
 < Background info on difficulties for older people finding housing >
+- Fair housing act does not explicitly ban age discrimination in housing (https://www.justice.gov/crt/fair-housing-act-1)
+- NYT article on rise of roommates for adults over 30 (https://www.nytimes.com/2016/05/06/fashion/mens-style/adult-men-roommates-new-york.html)
+- Atlantic article on rise of roomates (https://www.theatlantic.com/family/archive/2018/08/the-strange-unique-intimacy-of-the-roommate-relationship/567296/)
+- Zillow research article on doubling up (https://www.zillow.com/research/rising-rents-more-roommates-17618/)
+
+In a recent study, Zillow found that the share of adults living with a non-spouse, non-partnered roomate increased from 21% in 2005 to 30% at the end of 2017.  Whether it is due to changing attitudes about living with roommates, a neccesity due to increased rents in major cities, or some other factor, the trend is clear: more Americans are cohabitating with someone other than a spouse or partner.  While college and post-college aged urbanites often expect to have roommates, the trend is increasing for those older than 30, as a recent New York Times profile depicts.  As employment opportunities continue to cluster in dense metropolitan areas such as New York and San Francisco, an older cohort may be forced to cohabitate in order to pursue economic opportunity.
+
+In spite of this demographic trend, little research has been done into the availability and accessibility of roommates for different age groups.  As the New York Times profile describes, until recently the idea of having a roommate was mostly relegated to young professionals in their 20s.  Through this study, we set out to determine if older professionals face a penalty when seeking a roommate compared to someone of "typical" roommate age.
+
+< Through our research, we find x >
 
 < This is important because XYZ >
 

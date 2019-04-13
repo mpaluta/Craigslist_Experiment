@@ -1,0 +1,154 @@
+---
+title: "Krysten_241_model"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries, include=FALSE, results="hide"} 
+# load packages 
+library(data.table)
+library(foreign)
+library(dplyr)
+library(car)
+library(Hmisc)
+library(lmtest)
+library(sandwich)
+library(multiwayvcov)
+library(stargazer)
+```
+
+```{r}
+d <- read.csv("craigslist.csv")
+#d <- read.csv("craigslist.csv", stringsAsFactors = FALSE)
+``` 
+
+
+```{r}
+head(d)
+```
+
+```{r}
+dim(d)
+```
+
+
+```{r}
+colSums(is.na(d))
+```
+
+```{r}
+colnames(d)
+```
+
+
+```{r}
+colSums(is.na(d))
+```
+
+
+```{r}
+#create new subsetted dataframe
+d_sub <- d[c(1:2, 10:11, 14:18)]
+head(d_sub)
+
+```
+
+```{r}
+str(d_sub)
+```
+
+```{r}
+summary(d_sub$list_type)
+
+```
+
+
+```{r}
+# There are extra white spaces in 'katie_27', need to remove; returns string w/o leading or trailing whitespace
+trim <- function (x) gsub("^\\s+|\\s+$", "", x)
+d_sub$katie_27 <- trim(d_sub$katie_27)
+str(d_sub$katie_27)
+```
+
+
+```{r}
+#binarized 'list_type', 'katie_27', 'reply', and 'fave_reply'
+d_sub <- within(d_sub, {
+  list_type = ifelse(list_type == "house", 1, 0)
+  katie_27 = ifelse(katie_27 == "katie_27", 1, 0)
+  reply = ifelse(reply == "Y", 1, 0)
+  fave_reply = ifelse(fave_reply == "Y", 1, 0)
+})
+
+head(d_sub, 25)
+```
+
+
+```{r}
+#changed NA's in 'list_type' to 0
+d_sub[c("list_type")][is.na(d_sub[c("list_type")])] <- 0
+
+colSums(is.na(d_sub))
+str(d_sub)
+```
+
+
+```{r}
+a <- d_sub[, c('list_price', 'list_type', 'katie_27',  'reply', 'fave_reply')]
+b <- round(cor(a), 3)
+b
+```
+
+```{r}
+library(corrplot)
+corrplot(b)
+
+```
+
+
+```{r fig.height=5, fig.width=5}
+#Correlations 
+
+a <- d_sub[, c('list_price', 'list_type', 'katie_27',  'reply', 'fave_reply')]
+a.cormat <- round(cor(a), 2)
+melt.a <- melt(a.cormat)
+#head(melt.speed)
+ggplot(data=melt.a, aes(x=Var1, y=Var2, fill=value)) + geom_tile(color="white") +  scale_fill_gradient2(low = "orange", high = "dark green", mid = "white", 
+   midpoint = 0, limit = c(-1,1), space = "Lab", 
+   name="Pearson\nCorrelation") +
+  theme_minimal()+ 
+ theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+    size = 12, hjust = 1))+
+ coord_fixed()
+
+```
+
+
+```{r}
+mod.1 <- glm(reply ~ katie_27 + list_price + list_type, family = binomial(link = logit), data=d_sub)
+summary(mod.1)
+```
+
+
+```{r}
+#model with interactions
+mod.2 <- glm(reply ~ katie_27 + list_price + list_type + katie_27:list_price + katie_27: list_type, family = binomial(link = logit), data=d_sub)
+summary(mod.2)
+```
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```

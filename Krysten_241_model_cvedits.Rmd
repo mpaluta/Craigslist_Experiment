@@ -146,14 +146,14 @@ ggplot(data=melt.a, aes(x=Var1, y=Var2, fill=value)) + geom_tile(color="white") 
 
 
 ```{r}
-mod.1 <- glm(reply ~ katie_27 + list_price + list_type + mins_post_to_email, family = binomial(link = logit), data=d_sub)
+mod.1 <- glm(fave_reply ~ katie_27 + list_price + list_type + mins_post_to_email, family = binomial(link = logit), data=d_sub)
 summary(mod.1)
 ```
 
 
 ```{r}
 #model with interactions
-mod.2 <- glm(reply ~ katie_27 + list_price + list_type + katie_27:list_price + katie_27:list_type + + mins_post_to_email, family = binomial(link = logit), data=d_sub)
+mod.2 <- glm(fave_reply ~ katie_27 + list_price + list_type + katie_27:list_price + katie_27:list_type + mins_post_to_email, family = binomial(link = logit), data=d_sub)
 summary(mod.2)
 ```
 

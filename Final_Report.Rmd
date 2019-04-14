@@ -11,6 +11,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r libraries, message=FALSE, warning=FALSE}
 library(data.table)
+library(corrplot)
+library(stargazer)
 ```
 
 ## Introduction / Background / Motivation
@@ -162,10 +164,14 @@ colnames(d)[11:13]
 
 We will present some of the peculiarities of our data. First, we will need timestamps in a convenient format for analysis.
 
-```{r munging}
+```{r timestamp transformations}
 d$sent_timestamp <- as.POSIXct(d$sent_timestamp,format="%m/%d/%Y %H:%M", tz="EST")
 d$post_timestamp <- as.POSIXct(d$post_timestamp,format="%m/%d/%Y %H:%M", tz="EST")
 d$reply_timestamp <- as.POSIXct(d$reply_timestamp,format="%m/%d/%Y %H:%M", tz="EST")
+```
+
+```{r}
+d$poster_age = as.numeric(d$poster_age)
 ```
 
 We will add additional columns for the differences between these timestamps as we may want to use them as covariates.
@@ -177,15 +183,28 @@ d$mins_post_to_email <- as.numeric(difftime(d$sent_timestamp,d$post_timestamp, u
 d$mins_email_to_reply <- as.numeric(difftime(d$reply_timestamp,d$sent_timestamp, units="mins"))
 ```
 
-< Provide some context around these outputs or choose which ones to include >
+< Provide some context around these outputs and decide which ones to include >
 
 ```{r EDA}
-head(d)
+# head(d) # don't include this - at least not for the columns of text
 str(d)
 dim(d)
 colSums(is.na(d))
 colnames(d)
 
+hist(d$list_price) # maybe worth log transforming this
+hist(log(d$list_price))
+
+# create temporary dataframe casting categorical vars as 0-1 to allow corrplot
+# d_temp <- within(d_sub, {
+#   list_type = ifelse(list_type == "house", 1, 0)
+#   treatment = ifelse(treatment == "katie_27", 1, 0)
+#   #reply = ifelse(reply == "Y", 1, 0)
+#   fave_reply = ifelse(fave_reply == "Y", 1, 0)
+# })
+# correlations = cor(na.omit(d_temp[, c('list_price', 'list_type', 'treatment', 'fave_reply', "mins_post_to_email")]))
+# corrplot(correlations, method="color", type="upper", addCoef.col = "black",
+#          col=colorRampPalette(c("#BB4444",  "#FFFFFF", "#4477AA"))(200))
 ```
 
 
@@ -193,12 +212,22 @@ colnames(d)
 
 We will try two methods of testing for treatment effect. The first method we will use is regression. Regression has the advantage of utilizing covariate information to add precision to estimates of our treatment effect. As favorable replies are a binary response, logistic regression is the most appropriate way to model probabilities and odds of a response. Within regression, we will use two specifications: one simply
 
-```{r model}
+```{r models}
 
 # fit logistic regression without covariates
-model = glm(fave_reply ~ treatment, data=d, family = binomial(link="logit"))
-summary(model)
+model.1 = glm(fave_reply ~ treatment, data=d, family = binomial(link="logit"))
+#summary(model.1)
+
+# fit logistic regression with select covariates
+model.2 = glm(fave_reply ~ treatment + mins_post_to_email, data=d, family = binomial(link="logit"))
+#summary(model.2)
 ```
+
+``` {r stargazer, results='asis'}
+stargazer(model.1, model.2)
+```
+
+The second way we will analyze this data is simply a two-proportion z-test. We cannot use covariates for this test, but we can 
 
 ## Conclusions
 **Clear statement of results**

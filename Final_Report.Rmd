@@ -32,13 +32,13 @@ In spite of this demographic trend, little research has been done into the avail
 
 < This is important because XYZ >
 
-We would like to investigate whether age affects replies when responding to a roommate posting on Craigslist. Specifically, we want to determine whether age has a statistically significant effect on:
+We would like to investigate whether age affects replies when responding to a roommate posting on Craigslist. Specifically, we want to determine whether age has a statistically significant effect on the odds of what we will call a "favorable reply".
 
-1) the odds of receiving a reply,
-2) the odds of receiving a favorable reply, and
-3) the response time of a reply
+<!-- 1) the odds of receiving a reply, -->
+<!-- 2) the odds of receiving a favorable reply, and -->
+<!-- 3) the response time of a reply -->
 
-Thus, we will be developing at least one model specification for each question.
+<!-- Thus, we will be developing at least one model specification for each question. -->
 
 Response Definitions:
     Reply - any response from the person who posted the listing; could indicate vacancy filled, request more information, etc.
@@ -110,91 +110,98 @@ All postings will be considered valid except for:
 
 ## Data Collection
 
-
 ```{r include=FALSE}
-df = read.csv("Data_Collection_Sheet.csv", fileEncoding="UTF-8-BOM")
+#df = read.csv("Data_Collection_Sheet.csv", fileEncoding="UTF-8-BOM")
+d <- read.csv("craigslist.csv")
+d$email_sent_date = NULL
+d$email_sent_time = NULL
+d$post_date = NULL
+d$post_time = NULL
+d$reply_date = NULL
+d$reply_time = NULL
 ```
 
-We will collect a few types of information:
+We collected a few types of information:
 
 1) Title and body content of the post to assist in identifying duplicates and to archive this data in case the post is taken down.
 ```{r}
-colnames(df)[4:5]
+colnames(d)[3:4]
 ```
 
 2) Post metadata
 ```{r}
-colnames(df)[c(3,6)]
+colnames(d)[c(2,5)]
 ```
 
 3) Covariates that may themselves predict high or low response rate
 ```{r}
-colnames(df)[7:10]
+colnames(d)[6:9]
 ```
 
 4) Which treatment was applied
 ```{r}
-colnames(df)[11]
+colnames(d)[10]
 ```
 
 5) Timestamp information for our response
 ```{r}
-colnames(df)[1:2]
+colnames(d)[1]
 ```
 
 6) Reply (outcome) information
 ```{r}
-colnames(df)[12:13]
+colnames(d)[11:13]
 ```
 
-### Generate fake data to build analysis tools
+<!-- 7) Additional covariate information determined from replies -->
+```{r}
+#colnames(d)[14,15]
+```
 
-Building in a fake treatment effect where katie_27 gets more replies.
+## EDA
+
+We will present some of the peculiarities of our data. First, we will need timestamps in a convenient format for analysis.
+
+```{r munging}
+d$sent_timestamp <- as.POSIXct(d$sent_timestamp,format="%m/%d/%Y %H:%M", tz="EST")
+d$post_timestamp <- as.POSIXct(d$post_timestamp,format="%m/%d/%Y %H:%M", tz="EST")
+d$reply_timestamp <- as.POSIXct(d$reply_timestamp,format="%m/%d/%Y %H:%M", tz="EST")
+```
+
+We will add additional columns for the differences between these timestamps as we may want to use them as covariates.
+
+< Mark comment - actually I am thinking since mins_email_to_reply is an outcome, it probably shoulnd't be a covariate. We could still do a linear regression on reply time as an outcome if we think that could be an interesting question. >
 
 ```{r}
-set.seed(468)
-
-date_gen = function(N, st="2019/03/15", et="2019/03/30") {
-   st = as.POSIXct(as.Date(st))
-   et = as.POSIXct(as.Date(et))
-   dt = as.numeric(difftime(et,st,unit="sec"))
-   ev = sort(runif(N, 0, dt))
-   rt = st + ev
-   return(rt)
-}
-
-fake_df = data.frame(
-  "Posting.title" = rep(NA, 100),
-  "Posting.body.text" = rep(NA, 100),
-  "Posting.url" = rep(NA, 100),
-  "Post.timestamp" = date_gen(100),
-  "Listing.price" = runif(100, 300, 1000),
-  "Listing.type" = sample(c("house","apartment","condo",NA), 100, replace = TRUE),
-  "Poster.gender" = sample(c("male","female",NA), 100, replace = TRUE),
-  "Poster.age" = sample(c(25:35,NA), 100, replace = TRUE),
-  "Treatment" = sample(c("katie_27","katie_43"), 100, replace = TRUE)
-)
-
-# Pretend email was sent at random time up to one day after post
-fake_df$Email.sent.datetime = fake_df$Post.timestamp + runif(100, 0, 3600*24)
-
-fake_df = as.data.table(fake_df)
-
-# Build fake logistic regression model to populate reply
-beta0 = -.3
-beta1 = .3
-log.odds = beta0 + beta1 * as.integer(fake_df$Treatment=="katie_27")
-prob = exp(log.odds) / (1 + exp(log.odds))
-fake_df$Reply = as.integer(prob > runif(100,0,1))
-
-# Pretend response was received at random time up to one day after our email
-fake_df$Reply.timestamp = fake_df$Email.sent.datetime + runif(100, 0, 3600*24)
+d$mins_post_to_email <- as.numeric(difftime(d$sent_timestamp,d$post_timestamp, units="mins"))
+d$mins_email_to_reply <- as.numeric(difftime(d$reply_timestamp,d$sent_timestamp, units="mins"))
 ```
 
+< Provide some context around these outputs or choose which ones to include >
+
+```{r EDA}
+head(d)
+str(d)
+dim(d)
+colSums(is.na(d))
+colnames(d)
+
+```
+
+
+## Modeling
+
+We will try two methods of testing for treatment effect. The first method we will use is regression. Regression has the advantage of utilizing covariate information to add precision to estimates of our treatment effect. As favorable replies are a binary response, logistic regression is the most appropriate way to model probabilities and odds of a response. Within regression, we will use two specifications: one simply
+
+```{r model}
+
+# fit logistic regression without covariates
+model = glm(fave_reply ~ treatment, data=d, family = binomial(link="logit"))
+summary(model)
+```
 
 ## Conclusions
 **Clear statement of results**
-
     In text description of your results
     Figures and tables that support your in text description
     Clean, clear, well articulated relationships between your theory, your hypotheses, the numbers that your models produce, and the figures you present.

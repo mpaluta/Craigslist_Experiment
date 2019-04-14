@@ -57,8 +57,8 @@ d$reply_timestamp <- as.POSIXct(d$reply_timestamp,format="%m/%d/%Y %H:%M", tz="E
 
 Create timediff columns
 ```{r}
-d$mins_post_to_email <- difftime(d$sent_timestamp,d$post_timestamp, units="mins")
-d$mins_email_to_reply <- difftime(d$reply_timestamp,d$sent_timestamp, units="mins")
+d$mins_post_to_email <- as.numeric(difftime(d$sent_timestamp,d$post_timestamp, units="mins"))
+d$mins_email_to_reply <- as.numeric(difftime(d$reply_timestamp,d$sent_timestamp, units="mins"))
 ```
 
 
@@ -69,7 +69,7 @@ d
 
 ```{r}
 #create new subsetted dataframe
-d_sub <- d[c(1:2, 10:11, 14:18)]
+d_sub <- d[c(1:2, 10:11, 14:18, 22:23)]
 head(d_sub)
 
 ```
@@ -115,7 +115,7 @@ str(d_sub)
 
 
 ```{r}
-a <- d_sub[, c('list_price', 'list_type', 'katie_27',  'reply', 'fave_reply')]
+a <- d_sub[, c('list_price', 'list_type', 'katie_27',  'reply', 'fave_reply', "mins_post_to_email")]
 b <- round(cor(a), 3)
 b
 ```
@@ -146,14 +146,14 @@ ggplot(data=melt.a, aes(x=Var1, y=Var2, fill=value)) + geom_tile(color="white") 
 
 
 ```{r}
-mod.1 <- glm(reply ~ katie_27 + list_price + list_type, family = binomial(link = logit), data=d_sub)
+mod.1 <- glm(reply ~ katie_27 + list_price + list_type + mins_post_to_email, family = binomial(link = logit), data=d_sub)
 summary(mod.1)
 ```
 
 
 ```{r}
 #model with interactions
-mod.2 <- glm(reply ~ katie_27 + list_price + list_type + katie_27:list_price + katie_27: list_type, family = binomial(link = logit), data=d_sub)
+mod.2 <- glm(reply ~ katie_27 + list_price + list_type + katie_27:list_price + katie_27:list_type + + mins_post_to_email, family = binomial(link = logit), data=d_sub)
 summary(mod.2)
 ```
 

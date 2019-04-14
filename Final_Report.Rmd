@@ -164,6 +164,11 @@ colnames(d)[11:13]
 
 We will present some of the peculiarities of our data. First, we will need timestamps in a convenient format for analysis.
 
+```{r}
+d
+```
+
+
 ```{r timestamp transformations}
 d$sent_timestamp <- as.POSIXct(d$sent_timestamp,format="%m/%d/%Y %H:%M", tz="EST")
 d$post_timestamp <- as.POSIXct(d$post_timestamp,format="%m/%d/%Y %H:%M", tz="EST")
@@ -179,8 +184,8 @@ We will add additional columns for the differences between these timestamps as w
 < Mark comment - actually I am thinking since mins_email_to_reply is an outcome, it probably shoulnd't be a covariate. We could still do a linear regression on reply time as an outcome if we think that could be an interesting question. >
 
 ```{r}
-d$mins_post_to_email <- as.numeric(difftime(d$sent_timestamp,d$post_timestamp, units="mins"))
-d$mins_email_to_reply <- as.numeric(difftime(d$reply_timestamp,d$sent_timestamp, units="mins"))
+d$hours_post_to_email <- as.numeric(difftime(d$sent_timestamp,d$post_timestamp, units="hours"))
+d$hours_email_to_reply <- as.numeric(difftime(d$reply_timestamp,d$sent_timestamp, units="hours"))
 ```
 
 < Provide some context around these outputs and decide which ones to include >
@@ -216,11 +221,11 @@ We will try two methods of testing for treatment effect. The first method we wil
 
 # fit logistic regression without covariates
 model.1 = glm(fave_reply ~ treatment, data=d, family = binomial(link="logit"))
-#summary(model.1)
+summary(model.1)
 
 # fit logistic regression with select covariates
-model.2 = glm(fave_reply ~ treatment + mins_post_to_email, data=d, family = binomial(link="logit"))
-#summary(model.2)
+model.2 = glm(fave_reply ~ treatment + hours_post_to_email, data=d, family = binomial(link="logit"))
+summary(model.2)
 ```
 
 ``` {r stargazer, results='asis'}
@@ -228,6 +233,43 @@ stargazer(model.1, model.2)
 ```
 
 The second way we will analyze this data is simply a two-proportion z-test. We cannot use covariates for this test, but we can 
+
+
+### Randomization Inference
+
+First, let's get our ATEs:
+
+```{r}
+unique(d$treatment)
+```
+
+
+```{r}
+d_dt <- data.table(d)
+
+reply_treatment <- d_dt[treatment=="katie_43", mean(fave_reply=="Y")]
+reply_base <- d_dt[treatment=="katie_27", mean(fave_reply=="Y")]
+ate <- reply_treatment - reply_base
+print(ate)
+```
+
+
+
+```{r}
+iter <- 10000
+ate_vec <- rep(NA, length(iter))
+for(i in 1:iter){
+d_dt[, success_rand := sample(c(0,1), size = .N, replace=TRUE)]
+ate_vec[i] <- as.numeric(d_dt[ , .('success_mean' = mean(fave_reply=="Y")), keyby =.(success_rand)][ , .('ate' = diff(success_mean, lag=1, differences=1))])
+}
+```
+
+```{r}
+table(ate_vec<ate)
+```
+This shows that, out of 1000 random instantiations, 4013 show an effect stronger than our calculated ATE, implying a p-value of 0.4013, a non-statistically significant result
+
+
 
 ## Conclusions
 **Clear statement of results**

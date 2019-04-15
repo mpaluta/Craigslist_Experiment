@@ -1,0 +1,279 @@
+---
+title: "Krysten_241_model"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries, include=FALSE, results="hide"} 
+# load packages 
+library(data.table)
+library(foreign)
+library(dplyr)
+library(car)
+library(Hmisc)
+library(lmtest)
+library(sandwich)
+library(multiwayvcov)
+library(stargazer)
+```
+
+```{r}
+#d <- read.csv("craigslist.csv")
+d <- read.csv("craigslist.csv", stringsAsFactors = FALSE)
+``` 
+
+
+```{r}
+head(d)
+```
+
+```{r}
+dim(d)
+```
+
+```{r}
+str(d)
+```
+
+```{r}
+#checking several variables in detail (for modeling purposes)
+describe(d$list_type)
+describe(d$poster_gender)
+describe(d$poster_age)
+describe(d$gender_in_email)
+describe(d$age_in_email)
+```
+
+**Conclusions based on variable info: use 'list_type', 'poster_gender', 'poster_age'; do not use 'gender_in_email' or 'age_in_email' as too many values missing. Remove 'roommate' value in 'list_type'.**
+
+
+## DATA CLEANING
+
+```{r}
+#remove the one 'roommate' value in 'list_type'
+d <- d %>% filter(list_type != 'roommate')
+
+describe(d$list_type)
+```
+
+**TO DO ITEM BY KRYSTEN**
+```{r}
+#poster_age needs to be cleaned
+
+
+```
+
+
+```{r}
+#convert 'sent_timestamp', 'post_timestamp', and 'reply_timestamp' to DateTime 
+#will be used for day/time diff calculations
+
+d$sent_timestamp <- as.POSIXct(d$sent_timestamp, format='%m/%d/%Y %H:%M:%S')
+d$post_timestamp <- as.POSIXct(d$post_timestamp, format='%m/%d/%Y %H:%M:%S')
+d$reply_timestamp <- as.POSIXct(d$reply_timestamp, format='%m/%d/%Y %H:%M:%S')
+
+#str(d$sent_timestamp)   CONFIRMING IT WORKED
+#str(d$post_timestamp)
+#str(d$reply_timestamp)
+```
+
+```{r}
+#Add new columns with date/time difference calculations
+
+d$post_send_diff <- d$post_timestamp - d$sent_timestamp
+d$sent_reply_diff <- d$sent_timestamp - d$reply_timestamp
+
+```
+
+**TO DO ITEM BY KRYSTEN**
+```{r}
+#time_diff columns need to be standardized for readable format by models
+
+
+```
+
+
+```{r}
+# There are extra white spaces in 'katie_27', need to remove; returns string w/o leading or trailing whitespace
+# trim <- function (x) gsub("^\\s+|\\s+$", "", x)
+# d$katie_27 <- trim(d_sub$katie_27)
+# str(d_sub$katie_27)
+```
+
+```{r}
+#binarize response variable 'treatment'
+d <- within(d, {
+  #list_type = ifelse(list_type == "house", 1, 0)
+  #treatment = ifelse(treatment == "katie_43", 1, 0)
+  #reply = ifelse(reply == "Y", 1, 0)
+  fave_reply = ifelse(fave_reply == "Y", 1, 0)
+})
+
+#head(d_sub, 25)
+```
+
+
+```{r}
+colSums(is.na(d))
+```
+
+
+```{r}
+#run two different versions of model, one as pure lin regress, the other
+#as binomial log reg
+summary(lm(fave_reply ~ treatment + list_price, data=d))
+
+summary(glm(fave_reply ~ treatment + list_price, family = binomial, data=d))
+```
+
+
+```{r}
+summary(lm(fave_reply ~ treatment + list_price + list_type, data=d))
+
+summary(glm(fave_reply ~ treatment + list_price + list_type, family = binomial(link = logit), data=d))
+```
+
+```{r}
+#discontinued running glm/logit
+summary(lm(fave_reply ~ treatment:list_price + treatment:list_type, data=d))
+```
+
+```{r}
+summary(lm(fave_reply ~ list_price + list_type + poster_gender, data=d))
+```
+
+
+```{r}
+#with and without interaction terms; not even sure this makes sense bc how
+#are dow vars working in model???
+
+summary(lm(fave_reply ~ treatment + list_price + list_type +  post_dow +
+             reply_dow + email_sent_dow, data=d))
+
+```
+
+```{r}
+summary(lm(fave_reply ~ treatment + poster_gender, data=d))
+
+summary(lm(fave_reply ~ treatment + poster_age, data=d))
+
+#summary(lm(fave_reply ~ treatment + poster_gender:poster_age, data=d))  DON'T RUN
+```
+
+```{r}
+
+```
+
+
+```{r}
+summary(lm(fave_reply ~ treatment + post_dow, data=d))
+
+```
+
+```{r}
+summary(lm(fave_reply ~ treatment + reply_dow + email_sent_dow, data=d))
+```
+
+```{r}
+summary(lm(fave_reply ~ treatment + post_send_diff + sent_reply_diff, data=d))
+```
+
+```{r}
+colnames(d)
+```
+
+
+```{r}
+# dummy for DAY OF WEEK to see if that improves models
+library(fastDummies)
+d <- dummy_cols(d, select_columns = c("email_sent_dow", "reply_dow"))
+```
+
+```{r}
+colnames(d)
+```
+
+```{r}
+summary(lm(treatment ~ email_sent_dow_1 + email_sent_dow_2 + email_sent_dow_3 + email_sent_dow_4 + email_sent_dow_5 + email_sent_dow_6, data=d))
+```
+
+
+##################### PLEASE KEEP EVERYTHING BELOW UNTIL FINAL VERSION CREATED
+
+
+```{r}
+#create new subsetted dataframe
+# d_sub <- d[c(1:2, 10:11, 14:18)]
+# head(d_sub)
+
+```
+
+
+```{r}
+#changed NA's in 'list_type' to 0
+# d_sub[c("list_type")][is.na(d_sub[c("list_type")])] <- 0
+# 
+# colSums(is.na(d_sub))
+# str(d_sub)
+```
+
+
+```{r}
+# a <- d_sub[, c('list_price', 'list_type', 'katie_27',  'reply', 'fave_reply')]
+# b <- round(cor(a), 3)
+# b
+```
+
+```{r}
+library(corrplot)
+corrplot(b)
+
+```
+
+
+```{r fig.height=5, fig.width=5}
+#Correlations 
+
+a <- d_sub[, c('list_price', 'list_type', 'katie_27',  'reply', 'fave_reply')]
+a.cormat <- round(cor(a), 2)
+melt.a <- melt(a.cormat)
+#head(melt.speed)
+ggplot(data=melt.a, aes(x=Var1, y=Var2, fill=value)) + geom_tile(color="white") +  scale_fill_gradient2(low = "orange", high = "dark green", mid = "white", 
+   midpoint = 0, limit = c(-1,1), space = "Lab", 
+   name="Pearson\nCorrelation") +
+  theme_minimal()+ 
+ theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+    size = 12, hjust = 1))+
+ coord_fixed()
+
+```
+
+
+```{r}
+mod.1 <- glm(reply ~ katie_27 + list_price + list_type, family = binomial(link = logit), data=d_sub)
+summary(mod.1)
+```
+
+
+```{r}
+#model with interactions
+mod.2 <- glm(reply ~ katie_27 + list_price + list_type + katie_27:list_price + katie_27: list_type, family = binomial(link = logit), data=d_sub)
+summary(mod.2)
+```
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```

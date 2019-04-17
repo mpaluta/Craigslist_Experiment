@@ -1,8 +1,11 @@
 ---
 title: "Experimental_Methodology"
 author: "Mark Paluta, Krysten Thompson, Chris Ventura"
-date: "March 10, 2019"
-output: pdf_document
+date: "April 19, 2019"
+output: 
+  pdf_document:
+    toc: true
+    number_sections : true
 ---
 
 ```{r setup, include=FALSE}
@@ -16,7 +19,7 @@ library(stargazer)
 library(pwr)
 ```
 
-## Introduction / Background / Motivation
+# Introduction / Background / Motivation
 <TODO>
 - Clean up, properly cite sources
 - Clearly state research question and hypothesis
@@ -33,41 +36,78 @@ library(pwr)
 
 In a recent study, Zillow found that the share of adults living with a non-spouse, non-partnered roomate increased from 21% in 2005 to 30% at the end of 2017.  Whether it is due to changing attitudes about living with roommates, a neccesity due to increased rents in major cities, or some other factor, the trend is clear: more Americans are cohabitating with someone other than a spouse or partner.  While college and post-college aged urbanites often expect to have roommates, the trend is increasing for those older than 30, as a recent New York Times profile depicts.  As employment opportunities continue to cluster in dense metropolitan areas such as New York and San Francisco, an older cohort may be forced to cohabitate in order to pursue economic opportunity.
 
-In spite of this demographic trend, little research has been done into the availability and accessibility of roommates for different age groups.  As the New York Times profile describes, until recently the idea of having a roommate was mostly relegated to young professionals in their 20s.  Through this study, we set out to determine if older professionals face a penalty when seeking a roommate compared to someone in their 20's.
+In spite of this demographic trend, little research has been done into whether the age of someone looking for a place to live with roommates has an impact on their options. As the New York Times profile describes, until recently the idea of having a roommate was mostly relegated to young professionals in their 20s.  
 
+# Research Question
 
-We would like to investigate whether age affects replies when responding to a roommate posting on Craigslist. Specifically, we want to determine whether age has a statistically significant effect on the odds of what we will call a "favorable reply".
+Through this experiment, we set out to determine if older professionals face a penalty when seeking a roommate compared to someone in their 20's. We investigate whether age affects replies when responding to a roommate posting on Craigslist as well as determine whether age has a statistically significant effect on the odds of what we will call a "favorable reply".
 
-<!-- 1) the odds of receiving a reply, -->
-<!-- 2) the odds of receiving a favorable reply, and -->
-<!-- 3) the response time of a reply -->
+We hypothesized that the "older" age treatment would receive fewer favorable replies than the 20-something treatment.
 
-<!-- Thus, we will be developing at least one model specification for each question. -->
+# Initial Experiment Idea
 
-Response Definitions:
-    Reply - any response from the person who posted the listing; could indicate vacancy filled, request more information, etc.
-    Favorable Reply - response from listing poster suggesting time to show residence and received within 72 hours of inquiry email
-
-< Through our research, we find no effect>
-
-< This is important because it signals a lack of disparity in housing opportunity for women aged 27 and 43 in Indianapolis, perhaps suggesting that age is not a barrier to find a roommate. >
-
-## The Ideal Experiment
-
-Our initial experiment sought to test gender and age discrimination. We initially set-up two email accounts for a female and two email accounts for a male. One email account for each would signify the 27-yr old, the other email account would be for the 43-yr old. We chose these ages to avoid round numbers, have the 20-something presumed to be slightly more established in a job/career than someone who is 22 or 23 (too young of an age may have caused bias), and have the older person at least over 40 but not yet 45 which may have caused bias as well. 
+Our initial experiment sought to test gender and age discrimination. We created two email accounts for a female (age 27 and 43) and two email accounts for a male (age 27 and 43). We chose these ages to avoid round numbers, have the 20-something presumed to be slightly more established in a job/career than someone who is 22 or 23 (too young of an age may have caused bias), and have the older person at least over 40 but not yet 45 which may have caused bias as well. 
 
 We also considered running this experiment in several different cities in the U.S. to see if regional differences exist in terms of gender and age.
 
 A pilot was conducted in early March to determine if our initial approach would work and identify potential obstacles. We discovered issues with Craigslist and Gmail fraud mechanisms that led us to modify our approach. See Pilot Study below for further details. 
 
-## Methodology
+## Pilot Study and Outcomes
+
+We conducted a pilot study for three days to identify any problems that may surface during the full study. Major learnings from the pilot:
+
+1) VPNs are not particularly compatible with Craigslist. We initially wanted to use a VPN to avoid being flagged as fraud by Craigslist. We tried several but Craigslist still flagged us as fraud when it detected that we changed email accounts.
+
+2) Google sent one of our accounts a notification that it was shutting down one of our accounts because it detected the account was not being used according to Google's guidelines. 
+
+We concluded that maintaining too many personas would be difficult due to concerns about tripping fraud algorithms and getting our real IP addresses blacklisted. As a result, we decided to limit our full study to 2 females. We theorized that females would have higher response rates due to more postings seeming open to females, and suspected that males would be more willing to live with females than females would be willing to live with males.
+
+Not all posts seemed appropriate for measuring effects on a typical applicant. The following types of posts were excluded:
+
+  a) Posts with sexual implications including "friends with benefits", reduced rent in exchange for sex 
+  b) Posts soliciting other favors in exchange for reduced rent such as babysitting
+  c) Posts for students only
+  d) Posts without an email option or posts explicitly stating that email replies will not be answered
+  e) Posts explicitly stating males only
+
+
+# Experiment Design & Methodology
+
+The experiment design consisted of sending emails to listings under the Craigslist heading "Housing" > "Rooms/Shared". 
+
+In order to be able to draw conclusions that could be somewhat generalized to the US population, Indianapolis was selected as the target market. Indianapolis is a mid-sized city located in the midwest.
+
+We sent emails every 1-3 days across a two-week time period. We were not too concerned with the exact times or days we collected data since we were collecting a number of time-based covariates in order to not confound our results with any temporal effects. We did make a conscious effort to cover a broad range of variation in our temporal covariates by sending emails on every day of the week and including a mix of morning, afternoon, and evening collections.
+
+The following procedure was implemented each time emails were sent:
+
+1) Open all postings since the last data collection (or fewer if subject to time constraints, prioritizing recent postings)
+2) Go through each post and throw out any that meet our exclusion criteria
+3) Obtain a count of the number of included (remaining) posts
+4) Randomize an array assigning these posts to our 27-year-old or 43-year-old persona.
+5) Beginning with the first persona in the array, log into their respective email account and begin emailing posters in order from most recent to least, recording covariates as we go
+
+Emails were sent only to listings that were new, or listings that had been posted days or weeks ago but were "refreshed" in the postings list. There were only 1-2 instances where a listing received more than one "Katie" email and those observations were deleted from the final data set.
+
+A short R radomization function was run prior to sending out the emails to radomize which listing would receive a "Katie 27" or "Katie 43" email.
+
+The following was collected by manually entering data in a Google Sheet:
+
+- Listing post date/time
+- Email sent to listing date/time
+- Treatment (Katie 27, Katie 43)
+- Listing title, description
+- Age and gender of person posting listing (if avail)
+- Whether reply was received, along with date/time
+- Whether reply was favorable
+
+Favorable replies were defined as those received within 72 hours of a "Katie" email being sent and suggesting a time to show the unit or asking "Katie" for more information. An unfavorable reply stated the unit was already rented. 
+
 <TODO>
-- Fill in specifics now that experiment is determined
+
+**Add screenshot of email**
 - Add flow diagram
-- Largely just clean/format, most of the content is there.
-
-In order to be able to draw conclusions that could be somewhat generalized to the US population, Indianapolis was selected as the target market. 
-
+<Add diagram of response flows (emails/listing -> replies -> favorable replies)>
  **Clear statement of the experiment**
 
     Research Design (using ROXO grammar)
@@ -77,52 +117,16 @@ In order to be able to draw conclusions that could be somewhat generalized to th
     Modeling choices
 **end**
 
-We went on Craigslist for data collection activities approximately once per day for ___ days/weeks. We were not too concerned with the exact times or days we collected data since we were collecting a number of time-based covariates in order to not confound our results with any temporal effects. We did make a conscious effort to cover a broad range of variation in our temporal covariates by collecting at least once on every day of the week and a mix of morning, afternoon, and evening collections.
 
-Each time we began a collection activity, we would adhere to the following procedure:
+# Data   
 
-1) Open all postings since the last data collection (or fewer if subject to time constraints, prioritizing recent postings)
-2) Go through each post and throw out any that meet our exclusion criteria
-3) Obtain a count of the number of included (remaining) posts
-4) Randomize an array assigning these posts to our 27-year-old or 43-year-old persona.
-5) Beginning with the first persona in the array, log into their respective email account and begin emailing posters in order from most recent to least, recording covariates as we go
-
-Sufficiently later (make this clearer), we logged into the email accounts and recorded information about replies to our emails.
-
-<Add diagram of response flows (emails/listing -> replies -> favorable replies)>
-
-### Pilot Study
-
-We conducted a pilot study for three days to identify any problems that may surface during the full study. The major things we learned from this pilot study were:
-
-1) VPNs are not particularly compatible with Craigslist. < elaborate >
-
-2) As a correlary to #2, maintaining too many personas would be very difficult due to concerns about tripping fraud algorithms and getting our real IP addresses blacklisted. As a result, we decided to limit our full study to 2 personas. We decided to imitate females as we made a guess that females would have higher response rates due to anecdotally more postings seeming open to females and an anecdotal guess that males would be more willing to live with females than females would be willing to live with males.
-
-3) Not all types of posts seemed appropriate for measuring effects on a typical applicant. Specifically, we recognized the following types of posts as atypical scenarios and decided to exclude them from the full study.
-
-#### Exclusion Criteria:
-
-  a) Posts with sexual implications including "friends with benefits", reduced rent in exchange for sex, 
-  b) Posts soliciting other favors in exchange for reduced rent such as babysitting
-  c) Posts for students only
-  d) Posts without an email option or posts explicitly stating that email replies will not be answered.
-  e) Posts explicitly stating males only
-
-
- ...
-< Any further pilot study learnings >
-
-
-
-For each posting, we will note several covariates and we will give up to 48 (?) hours for a response.
-All postings will be considered valid except for:
-
- -	Posts specifically seeking a certain age or sex (?)
- -	Duplicate postings as recognized via images, post title, or body text
-
-## Data Collection
 <TODO>
+
+- Number of observations, how many for Katie_27, how many for Katie_43
+- Talk about missing data for several variables like poster age and gender
+- Don't show any code
+- Include any EDA charts here that make sense
+
 - Determine how we ant to present this.  Is this section necessary?  I think we can either just add a paragraph in methodology about our collection techniques or detail in EDA
 
 ```{r include=FALSE}
@@ -173,7 +177,9 @@ colnames(d)[11:13]
 #colnames(d)[14,15]
 ```
 
-## EDA
+# Exploratory Data Analysis
+
+**Don't think we should include this section**
 
 <TODO>
 - Do some initial data descriptions
@@ -183,6 +189,8 @@ colnames(d)[11:13]
 We will present some of the peculiarities of our data. First, we will need timestamps in a convenient format for analysis.
 
 ## Data Cleaning and Calculation
+
+**I don't we should include this section**
 
 #### Correct data formats
 Timestamps
@@ -256,7 +264,7 @@ hist(log(d$list_price))
 ```
 
 
-## Modeling
+# Modeling
 
 We will try two methods of testing for treatment effect. The first method we will use is regression. Regression has the advantage of utilizing covariate information to add precision to estimates of our treatment effect. As favorable replies are a binary response, logistic regression is the most appropriate way to model probabilities and odds of a response. Within regression, we will use four specifications.
 
@@ -297,7 +305,7 @@ stargazer(model.1, model.2, model.3, model.4)
 - ensure stargazer working appropriately
 
 
-### Two-proportion z-test
+## Two-proportion z-test
 <TODO>
 - Code!
 - Interpret results
@@ -305,7 +313,7 @@ stargazer(model.1, model.2, model.3, model.4)
 The second way we will analyze this data is simply a two-proportion z-test. We cannot use covariates for this test, but we can 
 
 
-### Randomization Inference
+## Randomization Inference
 
 First, let's get our ATEs:
 
@@ -336,7 +344,7 @@ This shows that, out of 10000 random instantiations, 3949 show an effect stronge
 <TODO>
 - Add additional narrative
 
-### Power Calculation
+## Power Calculation
 
 ```{r}
 pwr.t.test(d=0.022, sig.level=0.05, power=.9)
@@ -347,7 +355,7 @@ pwr.t.test(n=113, sig.level=0.05, power=.9)
 
 
 
-## Conclusions
+# Conclusions
 <TODO>
 -write conclusion lol
 **Clear statement of results**

@@ -13,9 +13,14 @@ knitr::opts_chunk$set(echo = TRUE)
 library(data.table)
 library(corrplot)
 library(stargazer)
+library(pwr)
 ```
 
 ## Introduction / Background / Motivation
+<TODO>
+- Clean up, properly cite sources
+- Clearly state research question and hypothesis
+- Expand summary at the end (<> sections)
 
 **Statement of the research question; why this is interesting to someone who is predisposed to be interested; what other people know about this; what (if any) obsrevational work has to say about this question**
 
@@ -30,9 +35,6 @@ In a recent study, Zillow found that the share of adults living with a non-spous
 
 In spite of this demographic trend, little research has been done into the availability and accessibility of roommates for different age groups.  As the New York Times profile describes, until recently the idea of having a roommate was mostly relegated to young professionals in their 20s.  Through this study, we set out to determine if older professionals face a penalty when seeking a roommate compared to someone in their 20's.
 
-< Through our research, we find x >
-
-< This is important because XYZ >
 
 We would like to investigate whether age affects replies when responding to a roommate posting on Craigslist. Specifically, we want to determine whether age has a statistically significant effect on the odds of what we will call a "favorable reply".
 
@@ -46,6 +48,9 @@ Response Definitions:
     Reply - any response from the person who posted the listing; could indicate vacancy filled, request more information, etc.
     Favorable Reply - response from listing poster suggesting time to show residence and received within 72 hours of inquiry email
 
+< Through our research, we find no effect>
+
+< This is important because it signals a lack of disparity in housing opportunity for women aged 27 and 43 in Indianapolis, perhaps suggesting that age is not a barrier to find a roommate. >
 
 ## The Ideal Experiment
 
@@ -56,6 +61,10 @@ We also considered running this experiment in several different cities in the U.
 A pilot was conducted in early March to determine if our initial approach would work and identify potential obstacles. We discovered issues with Craigslist and Gmail fraud mechanisms that led us to modify our approach. See Pilot Study below for further details. 
 
 ## Methodology
+<TODO>
+- Fill in specifics now that experiment is determined
+- Add flow diagram
+- Largely just clean/format, most of the content is there.
 
 In order to be able to draw conclusions that could be somewhat generalized to the US population, Indianapolis was selected as the target market. 
 
@@ -79,6 +88,8 @@ Each time we began a collection activity, we would adhere to the following proce
 5) Beginning with the first persona in the array, log into their respective email account and begin emailing posters in order from most recent to least, recording covariates as we go
 
 Sufficiently later (make this clearer), we logged into the email accounts and recorded information about replies to our emails.
+
+<Add diagram of response flows (emails/listing -> replies -> favorable replies)>
 
 ### Pilot Study
 
@@ -111,10 +122,12 @@ All postings will be considered valid except for:
  -	Duplicate postings as recognized via images, post title, or body text
 
 ## Data Collection
+<TODO>
+- Determine how we ant to present this.  Is this section necessary?  I think we can either just add a paragraph in methodology about our collection techniques or detail in EDA
 
 ```{r include=FALSE}
 #df = read.csv("Data_Collection_Sheet.csv", fileEncoding="UTF-8-BOM")
-d <- read.csv("craigslist.csv")
+d <- read.csv("craigslist.csv", stringsAsFactors = FALSE)
 d$email_sent_date = NULL
 d$email_sent_time = NULL
 d$post_date = NULL
@@ -162,33 +175,63 @@ colnames(d)[11:13]
 
 ## EDA
 
+<TODO>
+- Do some initial data descriptions
+- Describe cleanup steps
+- Create and describe visualizations
+
 We will present some of the peculiarities of our data. First, we will need timestamps in a convenient format for analysis.
 
-```{r}
-d
-```
+## Data Cleaning and Calculation
 
-
+#### Correct data formats
+Timestamps
 ```{r timestamp transformations}
 d$sent_timestamp <- as.POSIXct(d$sent_timestamp,format="%m/%d/%Y %H:%M", tz="EST")
 d$post_timestamp <- as.POSIXct(d$post_timestamp,format="%m/%d/%Y %H:%M", tz="EST")
 d$reply_timestamp <- as.POSIXct(d$reply_timestamp,format="%m/%d/%Y %H:%M", tz="EST")
 ```
 
+Timestamp distances
+```{r}
+d$hours_post_to_email <- as.numeric(difftime(d$sent_timestamp,d$post_timestamp, units="hours"))
+d$hours_email_to_reply <- as.numeric(difftime(d$reply_timestamp,d$sent_timestamp, units="hours")) # Note - not used will remove
+```
+
+Age
 ```{r}
 d$poster_age = as.numeric(d$poster_age)
 ```
 
-We will add additional columns for the differences between these timestamps as we may want to use them as covariates.
-
-< Mark comment - actually I am thinking since mins_email_to_reply is an outcome, it probably shoulnd't be a covariate. We could still do a linear regression on reply time as an outcome if we think that could be an interesting question. >
+Combine list_types
 
 ```{r}
-d$hours_post_to_email <- as.numeric(difftime(d$sent_timestamp,d$post_timestamp, units="hours"))
-d$hours_email_to_reply <- as.numeric(difftime(d$reply_timestamp,d$sent_timestamp, units="hours"))
+d <- within(d, list_type[list_type == 'townhouse'] <- 'house')
+d <- within(d, list_type[list_type == 'condo'] <- 'apartment')
+d$list_type[is.na(d$list_type)] <- 'unknown'
+d$list_type = as.factor(d$list_type)
 ```
 
+Create weekend variable
+
+```{r}
+d$sent_is_weekend <- ifelse(d$email_sent_dow %in% c(1,6,7), 1, 0)
+```
+
+Binarize Treatment
+
+```{r}
+d <- within(d, {
+  fave_reply = ifelse(fave_reply == "Y", 1, 0)
+})
+```
+
+
 < Provide some context around these outputs and decide which ones to include >
+< Additional ideas:
+  - Two bars, side by side, with probability of favorable replies and error margins
+  - line chart showing probability of favorable reply based on sent time for treatment and control
+>
 
 ```{r EDA}
 # head(d) # don't include this - at least not for the columns of text
@@ -215,22 +258,49 @@ hist(log(d$list_price))
 
 ## Modeling
 
-We will try two methods of testing for treatment effect. The first method we will use is regression. Regression has the advantage of utilizing covariate information to add precision to estimates of our treatment effect. As favorable replies are a binary response, logistic regression is the most appropriate way to model probabilities and odds of a response. Within regression, we will use two specifications: one simply
+We will try two methods of testing for treatment effect. The first method we will use is regression. Regression has the advantage of utilizing covariate information to add precision to estimates of our treatment effect. As favorable replies are a binary response, logistic regression is the most appropriate way to model probabilities and odds of a response. Within regression, we will use four specifications.
 
-```{r models}
+Our first model contains all key covariates <explain why we chose (completeness, preservation of degrees of freedom.)>
+Our second removed posting type and price - neither was significant and likely correlated, removing does not impact results
+Third contains only significant variable and treatment
+Fourth is treatment only
 
-# fit logistic regression without covariates
-model.1 = glm(fave_reply ~ treatment, data=d, family = binomial(link="logit"))
+
+
+<remove summaries with working stargazer>
+```{r}
+# GLMs
+# model 1: exhaustive regression
+model.1 = glm(fave_reply ~ treatment+log(list_price)+list_type+log(hours_post_to_email)+sent_is_weekend, data=d, family = binomial(link="logit"))
 summary(model.1)
 
-# fit logistic regression with select covariates
-model.2 = glm(fave_reply ~ treatment + hours_post_to_email, data=d, family = binomial(link="logit"))
+# model 2: removing list type and price (rationale - maybe correlated with weekend sent)
+model.2 = glm(fave_reply ~ treatment+log(hours_post_to_email)+sent_is_weekend, data=d, family = binomial(link="logit"))
 summary(model.2)
+
+# model 3: only treatment and hours_post_to_email (the only significant covariate)
+model.3 = glm(fave_reply ~ treatment+log(hours_post_to_email), data=d, family = binomial(link="logit"))
+summary(model.3)
+
+# model 4: treatment only
+model.4 = glm(fave_reply ~ treatment, data=d, family = binomial(link="logit"))
+summary(model.4)
+
 ```
 
+
 ``` {r stargazer, results='asis'}
-stargazer(model.1, model.2)
+stargazer(model.1, model.2, model.3, model.4)
 ```
+<TODO>
+- interpretation of coefficients
+- ensure stargazer working appropriately
+
+
+### Two-proportion z-test
+<TODO>
+- Code!
+- Interpret results
 
 The second way we will analyze this data is simply a two-proportion z-test. We cannot use covariates for this test, but we can 
 
@@ -240,19 +310,13 @@ The second way we will analyze this data is simply a two-proportion z-test. We c
 First, let's get our ATEs:
 
 ```{r}
-unique(d$treatment)
-```
-
-
-```{r}
 d_dt <- data.table(d)
 
-reply_treatment <- d_dt[treatment=="katie_43", mean(fave_reply=="Y")]
-reply_base <- d_dt[treatment=="katie_27", mean(fave_reply=="Y")]
+reply_treatment <- d_dt[treatment=="katie_43", mean(fave_reply==1)]
+reply_base <- d_dt[treatment=="katie_27", mean(fave_reply==1)]
 ate <- reply_treatment - reply_base
 print(ate)
 ```
-
 
 
 ```{r}
@@ -260,18 +324,32 @@ iter <- 10000
 ate_vec <- rep(NA, length(iter))
 for(i in 1:iter){
 d_dt[, success_rand := sample(c(0,1), size = .N, replace=TRUE)]
-ate_vec[i] <- as.numeric(d_dt[ , .('success_mean' = mean(fave_reply=="Y")), keyby =.(success_rand)][ , .('ate' = diff(success_mean, lag=1, differences=1))])
+ate_vec[i] <- as.numeric(d_dt[ , .('success_mean' = mean(fave_reply==1)), keyby =.(success_rand)][ , .('ate' = diff(success_mean, lag=1, differences=1))])
 }
 ```
 
 ```{r}
 table(ate_vec<ate)
 ```
-This shows that, out of 1000 random instantiations, 4013 show an effect stronger than our calculated ATE, implying a p-value of 0.4013, a non-statistically significant result
+This shows that, out of 10000 random instantiations, 3949 show an effect stronger than our calculated ATE, implying a p-value of 0.3949, a non-statistically significant result.  This is consistent with our linear modeling results.
+
+<TODO>
+- Add additional narrative
+
+### Power Calculation
+
+```{r}
+pwr.t.test(d=0.022, sig.level=0.05, power=.9)
+pwr.t.test(n=113, sig.level=0.05, power=.9)
+```
+<TODO>
+- Add narrative
 
 
 
 ## Conclusions
+<TODO>
+-write conclusion lol
 **Clear statement of results**
     In text description of your results
     Figures and tables that support your in text description

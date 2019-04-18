@@ -2,10 +2,12 @@
 title: "Experimental_Methodology"
 author: "Mark Paluta, Krysten Thompson, Chris Ventura"
 date: "April 19, 2019"
-output: 
+output:
+  word_document:
+    toc: yes
   pdf_document:
-    toc: true
-    number_sections : true
+    number_sections: yes
+    toc: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -104,6 +106,15 @@ The following was collected by manually entering data in a Google Sheet:
 - Whether reply was favorable
 
 Favorable replies were defined as those received within 72 hours of a "Katie" email being sent and suggesting a time to show the unit or asking "Katie" for more information. An unfavorable reply stated the unit was already rented. 
+
+Email Text:
+
+Hi,
+
+I saw your listing and it sounds like it might be ideal. I’m Katie, 43 years old, employed, tend to keep my place pretty tidy, and enjoy cooking and running. When would I be able to see the room in person?
+
+Thanks, Katie
+
 
 <TODO>
 
@@ -232,6 +243,11 @@ d <- within(d, {
 
 ```{r EDA}
 # I think for these next two, probably plot side by side to show the effect of log transformation
+
+# h.1 <- ggplot(d, aes(x=list_price)) + geom_histogram()
+# h.2 <- ggplot(d, aes((x=log(list_price)) + geom_histogram()))
+# grid.arrange(h.1, h.2, ncol=1)
+
 hist(d$list_price)
 hist(log(d$list_price))
 
@@ -328,11 +344,30 @@ In fact, the only variable to show any statistical significance in our model spe
 
 The second way we will analyze this data is simply a two-proportion z-test.
 
-<TODO>
-- Code!
-- Interpret results
+```{r}
 
+# fave_27 <- d[ which(d$fave_reply==1 & d$treatment=='katie_27'), ]
+# sum(fave_27$fave_reply) #total = 33
+# 
+# fave_43 <- d[ which(d$fave_reply==1 & d$treatment=='katie_43'), ]
+# sum(fave_43$fave_reply) #total = 29
 
+res <- prop.test(x = c(33, 29), n = c(113, 113))
+res
+```
+
+**We also explored any differences in the proportions between Katie_27 and Katie_43 receiving a favorable reply. We ran a tw-proportion z-test resulting in the following:**
+
+Estimated probability of success:
+
+            Katie_27    $0.292$
+            Katie_43    $0.257$
+            
+P-value:  $0.655$
+
+Confidence Interval at 95%:  $-0.09$ - $0.16$
+
+**With a p-value greater than $0.05$, we conclude that the proportion of favorable replies between the two Katies' is not significantly different.**
 
 ## Randomization Inference
 
@@ -371,7 +406,11 @@ power_d <- pwr.t.test(n=113, sig.level=0.05, power=.8)
 power_d
 ```
 
-Prior to our experiment, we did some rough power calculations.  However, after tabulating results and output, it appears that our experiment suffered from a lack of power, but only an incredibly drastic change in observations or effect would have garnered a statistically sgnificant result.  Examing our calculated effect, we would need an n of `r round(as.numeric(power_n['n']),0)` for our results to be statistically significant.  Keeping the number of actual observations, we would have needed a measured treatment effect of `r round(as.numeric(power_d['d']),2)`, nearly twenty times our observed effect.  This lends evidence to the lack of effect we observed and suggests an experiment of a signficantly larger scale would be required to identify any real effect.
+Prior to our experiment, we did some rough power calculations.  However, after tabulating results and output, it appears that our experiment suffered from a lack of power, but only an incredibly drastic change in observations or effect would have garnered a statistically sgnificant result.  Examing our calculated effect, we would need an n of `r round(as.numeric(power_n['n']),0)` (or 32,434) for our results to be statistically significant.  Keeping the number of actual observations, we would have needed a measured treatment effect of `r round(as.numeric(power_d['d']),2)`, nearly twenty times our observed effect.  This lends evidence to the lack of effect we observed and suggests an experiment of a signficantly larger scale would be required to identify any real effect.
+
+# How We Would Re-do the Experiment
+
+
 
 
 # Conclusions

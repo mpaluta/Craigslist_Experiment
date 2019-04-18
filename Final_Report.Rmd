@@ -227,9 +227,7 @@ d <- within(d, {
 **<TODO>**
 **- Do some initial data descriptions**
 **- Include any plots that make sense and comment on them**
-<!-- love these next two, but thinking results section -Mark -->
-**- Two bars, side by side, with probability of favorable replies and error margins** 
-**- line chart showing probability of favorable reply based on sent time for treatment and control**
+
 >
 
 ```{r EDA}
@@ -253,6 +251,13 @@ hist(log(d$hours_post_to_email))
 ```
 
 # Results
+
+## Summary Results
+<!-- love these next two, but thinking results section -Mark -->
+**- Two bars, side by side, with probability of favorable replies and error margins** 
+- needs code and interpretation
+**- line chart showing probability of favorable reply based on sent time for treatment and control**
+- needs code and interpretation
 
 ## Regression
 
@@ -361,16 +366,22 @@ In addition, we also used randomization inference to examine the probability of 
 
 ```{r}
 power_n <- pwr.t.test(d=0.022, sig.level=0.05, power=.8)
+power_n
 power_d <- pwr.t.test(n=113, sig.level=0.05, power=.8)
+power_d
 ```
-<TODO>
-- Add narrative
 
+Prior to our experiment, we did some rough power calculations.  However, after tabulating results and output, it appears that our experiment suffered from a lack of power, but only an incredibly drastic change in observations or effect would have garnered a statistically sgnificant result.  Examing our calculated effect, we would need an n of `r round(as.numeric(power_n['n']),0)` for our results to be statistically significant.  Keeping the number of actual observations, we would have needed a measured treatment effect of `r round(as.numeric(power_d['d']),2)`, nearly twenty times our observed effect.  This lends evidence to the lack of effect we observed and suggests an experiment of a signficantly larger scale would be required to identify any real effect.
 
 
 # Conclusions
-<TODO>
--write conclusion lol
+
+As evidenced by the outputs of our various analyses, we do not find significant evidence that being a 43 year old female garners fewer responses to roommate inquires than being a 27 year old female in Indianapolis.  While we found an impact of between`r round(model.1.robust['treatmentkatie_43','Estimate'], 2)` to `r round(model.4.robust['treatmentkatie_43','Estimate'], 2)`, a practically signficant result, the result lacked statistical signficance in all four of our model specifications, as well as our randomization inference scenario.  Thus, we fail to reject our null hypothesis that both ages of females garner the same response rate.
+
+While our experiment found no effect, we believe this result is significant in its own right.  We originally set out to study age bias in roommate searches and our experiment provides evidence against such bias.  This result could mean that there is one less barrier posed by age in pursuing economic opporunties, and perhaps public policy programs should focus on more pronounced room for bias.
+
+We recommend a variety of future areas of study to expand upon this research.  First and foremost, we recommend this study be replicated over a longer time period in a variety of markets, not just Indianapolis.  This could help prove the generalizability of our findings.  Second, we'd recommend testing a variety of ages.  We kept our experiment simple due to time constraints, but examining a continuous span of ages rather than simply two could elucidate more interesting results.  Finally, while we limited our experiment to examining age, this experiment could easily be replicated to examine race, gender, sexual orientation, or a variety of other demographic factors.  Perhaps some segments of these groups does face significant descrimination when searching for a roommate.  Given the feasibility of conducting these experiments on platforms such as Craigslist we would highly recommend this as an area of future research.
+
 **Clear statement of results**
     In text description of your results
     Figures and tables that support your in text description

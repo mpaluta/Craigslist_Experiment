@@ -79,7 +79,7 @@ The experiment design consisted of sending emails to listings under the Craigsli
 
 In order to be able to draw conclusions that could be somewhat generalized to the US population, Indianapolis was selected as the target market. Indianapolis is a mid-sized city located in the midwest.
 
-We sent emails every 1-3 days across a two-week time period. We were not too concerned with the exact times or days we collected data since we were collecting a number of time-based covariates in order to not confound our results with any temporal effects. We did make a conscious effort to cover a broad range of variation in our temporal covariates by sending emails on every day of the week and including a mix of morning, afternoon, and evening collections.
+We sent emails every 1-3 days across a two-week time period. We were not particularly concerned with the exact times or days we collected data since we were collecting a number of time-based covariates in order to not confound our results with any temporal effects. We did make a conscious effort to cover a broad range of variation in our temporal covariates by sending emails on every day of the week and including a mix of morning, afternoon, and evening collections.
 
 The following procedure was implemented each time emails were sent:
 
@@ -120,16 +120,9 @@ Favorable replies were defined as those received within 72 hours of a "Katie" em
 **end**
 
 
-# Data   
+# Data
 
-<TODO>
-
-- Number of observations, how many for Katie_27, how many for Katie_43
-- Talk about missing data for several variables like poster age and gender
-- Don't show any code
-- Include any EDA charts here that make sense
-
-- Determine how we ant to present this.  Is this section necessary?  I think we can either just add a paragraph in methodology about our collection techniques or detail in EDA
+## Data Types
 
 ```{r include=FALSE}
 #df = read.csv("Data_Collection_Sheet.csv", fileEncoding="UTF-8-BOM")
@@ -142,116 +135,110 @@ d$reply_date = NULL
 d$reply_time = NULL
 ```
 
-We collected a few types of information:
+We collected the following variables, spanning posting metadata, contents for archiving purposes, time information for temporal effects, covariates, and treatment applied. As we were not sure how clean our data would be and what would prove useful, we erred on the side of collecting lots of data and downselecting later.
 
-1) Title and body content of the post to assist in identifying duplicates and to archive this data in case the post is taken down.
-```{r}
-colnames(d)[3:4]
+```{r, include=FALSE}
+sum(is.na(d$poster_age))/nrow(d)
+sum(is.na(d$poster_gender))/nrow(d)
+sum(is.na(d$list_type))/nrow(d)
+sum(is.na(d$list_price))/nrow(d)
 ```
 
-2) Post metadata
-```{r}
-colnames(d)[c(2,5)]
+| Variable             | Description                       | Example                                    | % Missing |
+|----------------------|-----------------------------------|--------------------------------------------|-----------|
+| Post Title           | Title of the Craigslist post      | Roommate/shared house ASAP                 | 0%        |
+|----------------------|-----------------------------------|--------------------------------------------|-----------|
+| Post Body            | Body of the Craigslist post       | ALL INCLUSIVE 10 minutes from downtown...  | 0%        |
+|----------------------|-----------------------------------|--------------------------------------------|-----------|
+| Post URL             | URL of the Craigslist post        | https://indianapolis.craigslist.org...     | 0%        |
+|----------------------|-----------------------------------|--------------------------------------------|-----------|
+| Poster Age           | Age of the resident who posted    | 34                                         | 81%       |
+|----------------------|-----------------------------------|--------------------------------------------|-----------|
+| Poster Gender        | Gender of the resident who posted | Female                                     | 64%       |
+|----------------------|-----------------------------------|--------------------------------------------|-----------|
+| Listing Type         | Type of residence                 | Apartment                                  | 8%        |
+|----------------------|-----------------------------------|--------------------------------------------|-----------|
+| Listing Price        | Price of the listing              | $450                                       | 0%        |
+|----------------------|-----------------------------------|--------------------------------------------|-----------|
+| Posting Timestamp    | Timestamp that the post went up   | 3/21/2019 22:38                            | 0%        |
+|----------------------|-----------------------------------|--------------------------------------------|-----------|
+| Email Sent Timestamp | Timestamp that we emailed         | 3/22/2019 6:59                             | 0%        |
+|----------------------|-----------------------------------|--------------------------------------------|-----------|
+| Treatment            | Which alias we emailed from       | Katie 27                                   | 0%        |
+|----------------------|-----------------------------------|--------------------------------------------|-----------|
+| Reply                | Did we receive a reply?           | Y                                          | 0%        |
+|----------------------|-----------------------------------|--------------------------------------------|-----------|
+| Favorable Reply      | Did we receive a favorable reply? | Y                                          | 0%        |
+|----------------------|-----------------------------------|--------------------------------------------|-----------|
+| Reply Timestamp      | Timestamp of a reply, if received | 3/23/2019 16:53                            | 0%        |
+|----------------------|-----------------------------------|--------------------------------------------|-----------|
+| Weekend              | Was our email sent on a weekend?  | Y                                          | 0%        |
+
+In total, we sent `r nrow(d)` emails - `r sum(d$treatment=="katie_27")` for "Katie 27"" and `r sum(d$treatment=="katie_43")` for "Katie 43". For several of these variables, we had significant missing data and decided we would not be able to make use of them in modeling. In particular, we think poster age and gender could have been predictive had they been more complete. Our hypothesis would be that all else being equal, people prefer to live with those of the same gender or age.
+
+<!-- This below is fake data, but I was going to see if gender was showing an increase in response rate. I'll try to come back to this or else will delete it -Mark  -->
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+library(xtable)
+gender_df = data.frame("Poster Gender" = c("Female","Male"),"Katie 27" = c(23, 55))
+#xtable(gender_df, caption="Response rate by treatment and gender")
+options(xtable.comment = FALSE)
+print(xtable(gender_df, caption="Response rate by treatment and gender"), include.rownames=FALSE)
 ```
 
-3) Covariates that may themselves predict high or low response rate
-```{r}
-colnames(d)[6:9]
-```
+Since some replies we received did contain further information, which sometimes included a name, age, or gender, we considered filling in some missing data from replies where possible. We eventually decided against this for a few reasons. First, we still would not get close to 100% completeness on those variables and would need a separate category for "Unknown" and introducing imputations from responses only might even require an additional category. We thought that getting more covariate data from _the types of people_ who were replying to our emails would distort the relationship between that covariate and probability of a reply. This could bias the effect of the covariate and in turn bias our estimate of the treatment effect. Finally, since this information is not readily available to someone browsing Craigslist, it is of limited use to them because by the time they receive it, they already have their reply. 
 
-4) Which treatment was applied
-```{r}
-colnames(d)[10]
-```
+**<TODO>**
+**- Mention how we removed duplicates**
 
-5) Timestamp information for our response
-```{r}
-colnames(d)[1]
-```
+## Data Transformations
 
-6) Reply (outcome) information
-```{r}
-colnames(d)[11:13]
-```
+**<TODO>**
+**- Describe any transformations or cleanup steps that would be interesting to a reader**
 
-<!-- 7) Additional covariate information determined from replies -->
-```{r}
-#colnames(d)[14,15]
-```
-
-# Exploratory Data Analysis
-
-**Don't think we should include this section**
-
-<TODO>
-- Do some initial data descriptions
-- Describe cleanup steps
-- Create and describe visualizations
-
-We will present some of the peculiarities of our data. First, we will need timestamps in a convenient format for analysis.
-
-## Data Cleaning and Calculation
-
-**I don't we should include this section**
-
-#### Correct data formats
-Timestamps
-```{r timestamp transformations}
+```{r cleaning, include=FALSE}
+# Timestamps
 d$sent_timestamp <- as.POSIXct(d$sent_timestamp,format="%m/%d/%Y %H:%M", tz="EST")
 d$post_timestamp <- as.POSIXct(d$post_timestamp,format="%m/%d/%Y %H:%M", tz="EST")
 d$reply_timestamp <- as.POSIXct(d$reply_timestamp,format="%m/%d/%Y %H:%M", tz="EST")
-```
 
-Timestamp distances
-```{r}
+# Timestamp distances
 d$hours_post_to_email <- as.numeric(difftime(d$sent_timestamp,d$post_timestamp, units="hours"))
 d$hours_email_to_reply <- as.numeric(difftime(d$reply_timestamp,d$sent_timestamp, units="hours")) # Note - not used will remove
-```
 
-Age
-```{r}
+# Age
 d$poster_age = as.numeric(d$poster_age)
-```
 
-Combine list_types
-
-```{r}
+# Combine list_types
 d <- within(d, list_type[list_type == 'townhouse'] <- 'house')
 d <- within(d, list_type[list_type == 'condo'] <- 'apartment')
 d$list_type[is.na(d$list_type)] <- 'unknown'
 d$list_type = as.factor(d$list_type)
-```
 
-Create weekend variable
-
-```{r}
+# Create weekend variable
 d$sent_is_weekend <- ifelse(d$email_sent_dow %in% c(1,6,7), 1, 0)
-```
 
-Binarize Treatment
-
-```{r}
+# Binarize outcome
 d <- within(d, {
   fave_reply = ifelse(fave_reply == "Y", 1, 0)
 })
 ```
 
-
-< Provide some context around these outputs and decide which ones to include >
-< Additional ideas:
-  - Two bars, side by side, with probability of favorable replies and error margins
-  - line chart showing probability of favorable reply based on sent time for treatment and control
+**<TODO>**
+**- Do some initial data descriptions**
+**- Include any plots that make sense and comment on them**
+<!-- love these next two, but thinking results section -Mark -->
+**- Two bars, side by side, with probability of favorable replies and error margins** 
+**- line chart showing probability of favorable reply based on sent time for treatment and control**
 >
 
 ```{r EDA}
-# head(d) # don't include this - at least not for the columns of text
-str(d)
-dim(d)
-colSums(is.na(d))
-colnames(d)
-
-hist(d$list_price) # maybe worth log transforming this
+# I think for these next two, probably plot side by side to show the effect of log transformation
+hist(d$list_price)
 hist(log(d$list_price))
+
+hist(log(d$hours_post_to_email))
+hist(log(d$hours_post_to_email))
 
 # create temporary dataframe casting categorical vars as 0-1 to allow corrplot
 # d_temp <- within(d_sub, {
@@ -265,10 +252,9 @@ hist(log(d$list_price))
 #          col=colorRampPalette(c("#BB4444",  "#FFFFFF", "#4477AA"))(200))
 ```
 
-
 # Results
 
-### Regressions
+## Regression
 
 To estimate our treatment effects, we employed a variety of regression specifications.  All of the regression specificaitons followed the following equations:
 

@@ -17,6 +17,8 @@ library(data.table)
 library(corrplot)
 library(stargazer)
 library(pwr)
+library(sandwich)
+library(lmtest)
 ```
 
 # Introduction / Background / Motivation
@@ -264,50 +266,71 @@ hist(log(d$list_price))
 ```
 
 
-# Modeling
+# Results
 
-### Regression
+### Regressions
 
-We will try two methods of testing for treatment effect. The first method we will use is regression. Regression has the advantage of utilizing covariate information to add precision to estimates of our treatment effect. As favorable replies are a binary response, logistic regression is the most appropriate way to model probabilities and odds of a response. Within regression, we will use four specifications.
+To estimate our treatment effects, we employed a variety of regression specifications.  All of the regression specificaitons followed the following equations:
 
-Our first model contains all key covariates <explain why we chose (completeness, preservation of degrees of freedom.)>
-Our second removed posting type and price - neither was significant and likely correlated, removing does not impact results
-Third contains only significant variable and treatment
-Fourth is treatment only
+<Add equation in latex>
 
+We used a linear regression for each of our four regression specifications, regressing the binary variable of a favorable reply on our treatment and, for the first three specifications, our chosen covariates.  While our outcome variable is binary, using a linear regression allows us to directly measure the expected change in probability of getting a favorable reply, with the coefficients of the independent variables corresponding to the probability increase or decrease.
 
+**<Should we reverse this?  I feel like most papers I see usually have the reverse order (treatment only first, full gamut last)>**
+
+The first regression regresses favorable reply on the treatment, the log of list price, binary indicators for house and unknown list types (leaving apartments as the default), the log of hours between the post time and email sent, and a binary indicator indicating if the treament or control email was sent on a weekend.  Given that we have only 113 observations, we were wary of including all of our variables for fear of overfitting our regressions and to preserve degrees of freedom.  A number of our variables were sparsely populated, so we selected these variables based on their near complete population for all observations as well as likelihood of explaining variations in a poster's response.  We chose to take the log of list price due to a skew in the values and the log of hours between post time and email sent for ease of interpretability
+
+The second regression specification removes the variables associated with listing price and type, leaving only the treatment variable, the log of hours between post time and the email sent, and the binary indicator of the email being sent on the weekend.  This regression specification is meant to help ensure that we randomized effectively and that varibales related to the listing type were not correllated with the treatment.
+
+The third regression leaves only treatment and the log of hours between post time and the email being sent.  We will detail this in the next section, but we wanted to ensure the only statistically significant covariate had no impact on the treatment effect.
+
+Finally, the fourth regression contains only the treatment variable.
 
 <remove summaries with working stargazer>
 ```{r}
 # model 1: exhaustive regression
 model.1 = lm(fave_reply ~ treatment+log(list_price)+list_type+log(hours_post_to_email)+sent_is_weekend, data=d)
-#summary(model.1)
+model.1.robust <-coeftest(model.1, vcov = vcovHC(model.1, type="HC"))
+model.1.robust
+cov1 <- vcovHC(model.1, type = "HC")
+robust.se.1 <- sqrt(diag(cov1))
 
 # model 2: removing list type and price (rationale - maybe correlated with weekend sent)
 model.2 = lm(fave_reply ~ treatment+log(hours_post_to_email)+sent_is_weekend, data=d)
-#summary(model.2)
+model.2.robust <-coeftest(model.2, vcov = vcovHC(model.2, type="HC"))
+model.2.robust
+cov2 <- vcovHC(model.2, type = "HC")
+robust.se.2 <- sqrt(diag(cov2))
 
 # model 3: only treatment and hours_post_to_email (the only significant covariate)
 model.3 = lm(fave_reply ~ treatment+log(hours_post_to_email), data=d)
-#summary(model.3)
+model.3.robust <- coeftest(model.3, vcov = vcovHC(model.3, type="HC"))
+model.3.robust
+cov3 <- vcovHC(model.3, type = "HC")
+robust.se.3 <- sqrt(diag(cov3))
 
 # model 4: treatment only
 model.4 = lm(fave_reply ~ treatment, data=d)
-#summary(model.4)
+model.4.robust <- coeftest(model.4, vcov = vcovHC(model.4, type="HC"))
+model.4.robust
+cov4 <- vcovHC(model.4, type = "HC")
+robust.se.4 <- sqrt(diag(cov4))
 
-plot(model.1)
-plot(model.2)
-plot(model.3)
-plot(model.4)
+#plot(model.1)
+#plot(model.2)
+#plot(model.3)
+#plot(model.4)
 ```
 
 
 ``` {r stargazer, results='asis'}
-stargazer(model.1, model.2, model.3, model.4)
+stargazer(model.1, model.2, model.3, model.4, se=c(robust.se.1, robust.se.2, robust.se.3, robust.se.4))
 ```
-<TODO>
-- interpretation of coefficients
-- ensure stargazer working appropriately
+
+Examining the results of the four regression specifications, we see a fairly consistent treatment effect ranging from `r round(model.1.robust['treatmentkatie_43','Estimate'], 2)` to `r round(model.4.robust['treatmentkatie_43','Estimate'], 2)`.  This suggests that our randomization worked appropriately, and that the effect of being a 43 year old female as opposed to a 27 year old females was to reduce the probability of receiving a response to roommate listing inquiries by `r abs(round(model.4.robust['treatmentkatie_43','Estimate'], 2))` to `r abs(round(model.1.robust['treatmentkatie_43','Estimate'], 2))`.  In spite of this practical significance, however, this result lacked statistical signifiance for all four model specifications with p-values ranging from `r round(model.1.robust['treatmentkatie_43','Pr(>|t|)'], 2)` to `r round(model.4.robust['treatmentkatie_43','Pr(>|t|)'], 2)`.
+
+**<Please check my interpretation of the log values>**
+In fact, the only variable to show any statistical significance in our model specifications is the log of hours between the post time and the sending of our treatment or control email. The coefficients of `r round(model.1.robust['log(hours_post_to_email)','Estimate'], 2)` to `r round(model.3.robust['log(hours_post_to_email)','Estimate'], 2)` suggests that a 100% increase in response time corresponds with a `r round(model.1.robust['log(hours_post_to_email)','Estimate'], 2)*100`% to `r round(model.3.robust['log(hours_post_to_email)','Estimate'], 2)*100`% change in likelihood of a response.
 
 
 ## Two-proportion z-test
@@ -321,8 +344,6 @@ The second way we will analyze this data is simply a two-proportion z-test.
 
 
 ## Randomization Inference
-
-First, let's get our ATEs:
 
 ```{r}
 d_dt <- data.table(d)
@@ -344,19 +365,17 @@ ate_vec[i] <- as.numeric(d_dt[ , .('success_mean' = mean(fave_reply==1)), keyby 
 ```
 
 ```{r}
-table(ate_vec<ate)
+ri <- table(ate_vec<ate)
+ri
 ```
 
-This shows that, out of 10000 random instantiations, 3949 show an effect stronger than our calculated ATE, implying a p-value of 0.3949, a non-statistically significant result.  This is consistent with our linear modeling results.
-
-<TODO>
-- Add additional narrative
+In addition, we also used randomization inference to examine the probability of calculating our treatment effect by chance.  Examining the difference in means, we calculate an average treatment effect of `r round(ate,4)`.  Running randomization inference with `r iter` iteractions, we find `r as.numeric(ri[2])` random iterations with at least as significant a treatment effect as our actual.  This implies a p-value of `r as.numeric(ri[2]) / as.numeric(iter)`, a non-statistically significant result.  This is consistent with our linear regression results showing a non-statistically significant treatment effect.
 
 ## Power Calculation
 
 ```{r}
-pwr.t.test(d=0.022, sig.level=0.05, power=.9)
-pwr.t.test(n=113, sig.level=0.05, power=.9)
+power_n <- pwr.t.test(d=0.022, sig.level=0.05, power=.8)
+power_d <- pwr.t.test(n=113, sig.level=0.05, power=.8)
 ```
 <TODO>
 - Add narrative

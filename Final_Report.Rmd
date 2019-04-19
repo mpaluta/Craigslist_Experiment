@@ -340,11 +340,11 @@ Examining the results of the four regression specifications, we see a fairly con
 In fact, the only variable to show any statistical significance in our model specifications is the log of hours between the post time and the sending of our treatment or control email. The coefficients of `r round(model.1.robust['log(hours_post_to_email)','Estimate'], 2)` to `r round(model.3.robust['log(hours_post_to_email)','Estimate'], 2)` suggests that a 100% increase in response time corresponds with a `r round(model.1.robust['log(hours_post_to_email)','Estimate'], 2)*100`% to `r round(model.3.robust['log(hours_post_to_email)','Estimate'], 2)*100`% change in likelihood of a response.
 
 
-## Two-proportion z-test
+## Power Calculations
 
-The second way we will analyze this data is simply a two-proportion z-test.
+To better understand if and how our experiment might be lacking in power, we ran a 2-Sample Z-test and Power Tests. The Z-test indicates any differences in the proportions between Katie_27 and Katie_43 receiving a favorable reply. Z-test results:
 
-```{r}
+```{r echo=FALSE, include=FALSE}
 
 # fave_27 <- d[ which(d$fave_reply==1 & d$treatment=='katie_27'), ]
 # sum(fave_27$fave_reply) #total = 33
@@ -356,8 +356,6 @@ res <- prop.test(x = c(33, 29), n = c(113, 113))
 res
 ```
 
-**We also explored any differences in the proportions between Katie_27 and Katie_43 receiving a favorable reply. We ran a tw-proportion z-test resulting in the following:**
-
 Estimated probability of success:
 
             Katie_27    $0.292$
@@ -367,7 +365,22 @@ P-value:  $0.655$
 
 Confidence Interval at 95%:  $-0.09$ - $0.16$
 
-**With a p-value greater than $0.05$, we conclude that the proportion of favorable replies between the two Katies' is not significantly different.**
+The high p-value of $0.66$, combined with a confidence interval wide enough to have both estimates of the probability of success overlap, leads to a conclusion that the proportion of favorable replies between the two Katies' is not significantly different.
+
+We then look at two power tests, one test to calculate the number of observations we would need to obtain for *each* treatment, the other test to determine the required difference between the outcome variable (favorable replies) in order to observe a statistically significant effect from only 113 observations.
+
+```{r echo=FALSE}
+power_n <- pwr.t.test(d=0.022, sig.level=0.05, power=.8)
+power_n
+power_d <- pwr.t.test(n=113, sig.level=0.05, power=.8)
+power_d
+```
+
+We would need an $n$ of `r round(as.numeric(power_n['n']),0)` (or 32,434 observations *per treatment*) for our results to be statistically significant. In order to be able to observe a statistically significant effect in age on the outcome variable 'favorable replies' using only 113 observations, the treatment effect would need to be `r round(as.numeric(power_d['d']),2)`, nearly twenty times our observed effect.  
+
+Power increases as $N$ size or effect size go up, and/or standard deviation is reduced.  Because of the requirement of over $32,000$ observations needed for each treatment, in addition to being unsure the treatment effect would be as high as $37\%$, we conclude that for this particular research project, we do not find any meaningful difference in the rate of favorable replies based on age. 
+
+
 
 ## Randomization Inference
 
@@ -397,16 +410,7 @@ ri
 
 In addition, we also used randomization inference to examine the probability of calculating our treatment effect by chance.  Examining the difference in means, we calculate an average treatment effect of `r round(ate,4)`.  Running randomization inference with `r iter` iteractions, we find `r as.numeric(ri[2])` random iterations with at least as significant a treatment effect as our actual.  This implies a p-value of `r as.numeric(ri[2]) / as.numeric(iter)`, a non-statistically significant result.  This is consistent with our linear regression results showing a non-statistically significant treatment effect.
 
-## Power Calculation
 
-```{r}
-power_n <- pwr.t.test(d=0.022, sig.level=0.05, power=.8)
-power_n
-power_d <- pwr.t.test(n=113, sig.level=0.05, power=.8)
-power_d
-```
-
-Prior to our experiment, we did some rough power calculations.  However, after tabulating results and output, it appears that our experiment suffered from a lack of power, but only an incredibly drastic change in observations or effect would have garnered a statistically sgnificant result.  Examing our calculated effect, we would need an n of `r round(as.numeric(power_n['n']),0)` (or 32,434) for our results to be statistically significant.  Keeping the number of actual observations, we would have needed a measured treatment effect of `r round(as.numeric(power_d['d']),2)`, nearly twenty times our observed effect.  This lends evidence to the lack of effect we observed and suggests an experiment of a signficantly larger scale would be required to identify any real effect.
 
 # How We Would Re-do the Experiment
 

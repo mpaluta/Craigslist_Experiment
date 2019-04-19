@@ -107,6 +107,7 @@ The following was collected by manually entering data in a Google Sheet:
 
 Favorable replies were defined as those received within 72 hours of a "Katie" email being sent and suggesting a time to show the unit or asking "Katie" for more information. An unfavorable reply stated the unit was already rented. 
 
+```
 Email Text:
 
 Hi,
@@ -114,7 +115,7 @@ Hi,
 I saw your listing and it sounds like it might be ideal. I'm Katie, 43 years old, employed, tend to keep my place pretty tidy, and enjoy cooking and running. When would I be able to see the room in person?
 
 Thanks, Katie
-
+```
 
 <TODO>
 
@@ -146,7 +147,7 @@ d$reply_date = NULL
 d$reply_time = NULL
 ```
 
-We collected the following variables, spanning posting metadata, contents for archiving purposes, time information for temporal effects, covariates, and treatment applied. As we were not sure how clean our data would be and what would prove useful, we erred on the side of collecting lots of data and downselecting later.
+We collected the following variables, spanning posting metadata, contents for archiving purposes, time information for temporal effects, covariates, and treatment applied. As we were not sure how clean our data would be and what would prove useful, we erred on the side of collecting more ariables and downselecting later.
 
 ```{r, include=FALSE}
 sum(is.na(d$poster_age))/nrow(d)
@@ -197,10 +198,9 @@ options(xtable.comment = FALSE)
 print(xtable(gender_df, caption="Response rate by treatment and gender"), include.rownames=FALSE)
 ```
 
-Since some replies we received did contain further information, which sometimes included a name, age, or gender, we considered filling in some missing data from replies where possible. We eventually decided against this for a few reasons. First, we still would not get close to 100% completeness on those variables and would need a separate category for "Unknown" and introducing imputations from responses only might even require an additional category. We thought that getting more covariate data from _the types of people_ who were replying to our emails would distort the relationship between that covariate and probability of a reply. This could bias the effect of the covariate and in turn bias our estimate of the treatment effect. Finally, since this information is not readily available to someone browsing Craigslist, it is of limited use to them because by the time they receive it, they already have their reply. 
+Since some replies we received did contain further information, which sometimes included a name, age, or gender, we considered filling in some missing data from replies where possible. We eventually decided against this for a few reasons. First, we still would not get close to 100% completeness on those variables and would need a separate category for "Unknown" and introducing imputations from responses only might even require an additional category. We thought that getting more covariate data from _the types of people_ who were replying to our emails would distort the relationship between that covariate and probability of a reply. This could bias the effect of the covariate and in turn bias our estimate of the treatment effect. Finally, since this information is not readily available to someone browsing Craigslist, it is of limited use to them because by the time they receive it, they already have their reply.
 
-**<TODO>**
-**- Mention how we removed duplicates**
+After examining our logged data, we noticed four postings for which we had sent emails from both "Katie 27" and "Katie 43", a total of eight observations in our dataset.  While a few of these emails garnered replies, in some cases for both "Katies", we removed all eight records from our dataset as we could not assess any possible spillover that may have occurred.  Given our randomization scheme, we do not believe this impacted any potential results and removing the observations was the best way to prevent any bias.
 
 ## Data Transformations
 
@@ -234,6 +234,11 @@ d <- within(d, {
   fave_reply = ifelse(fave_reply == "Y", 1, 0)
 })
 ```
+
+```{r}
+d[d$hours_post_to_email < 0,]
+```
+
 
 **<TODO>**
 **- Do some initial data descriptions**
@@ -279,19 +284,20 @@ hist(log(d$hours_post_to_email))
 
 To estimate our treatment effects, we employed a variety of regression specifications.  All of the regression specifications followed the following equations:
 
-<Add equation in latex>
+$$Y = \beta_0 + \beta_1(Treatment) + \epsilon$$
+For regressions with additional covariates, the specification included additional beta coefficients for each covariate.
 
 We used a linear regression for each of our four regression specifications, regressing the binary variable of a favorable reply on our treatment and, for the first three specifications, our chosen covariates.  While our outcome variable is binary, using a linear regression allows us to directly measure the expected change in probability of getting a favorable reply, with the coefficients of the independent variables corresponding to the probability increase or decrease.
 
 **<Should we reverse this?  I feel like most papers I see usually have the reverse order (treatment only first, full gamut last)>** - agreed that seems to be the convention (Mark)
 
-The first regression regresses favorable reply on the treatment, the log of list price, binary indicators for house and unknown list types (leaving apartments as the default), the log of hours between the post time and email sent, and a binary indicator indicating if the treament or control email was sent on a weekend.  Given that we have only 113 observations, we were wary of including all of our variables for fear of overfitting our regressions and to preserve degrees of freedom.  A number of our variables were sparsely populated, so we selected these variables based on their near complete population for all observations as well as likelihood of explaining variations in a poster's response.  We chose to take the log of list price due to a skew in the values and the log of hours between post time and email sent for ease of interpretability
+The first regression contains only the treatment variable
 
-The second regression specification removes the variables associated with listing price and type, leaving only the treatment variable, the log of hours between post time and the email sent, and the binary indicator of the email being sent on the weekend.  This regression specification is meant to help ensure that we randomized effectively and that varibales related to the listing type were not correllated with the treatment.
+The second regression contains treatment and the log of hours between post time and the email being sent.  We will detail this in the next section, but we wanted to ensure the only statistically significant covariate had no impact on the treatment effect.  We chose to take the log of hours between post time and email sent for ease of interpretability.
 
-The third regression leaves only treatment and the log of hours between post time and the email being sent.  We will detail this in the next section, but we wanted to ensure the only statistically significant covariate had no impact on the treatment effect.
+The third regression contains the treatment variable, the log of hours between post time and the email sent, and the binary indicator of the email being sent on the weekend.  This regression specification is meant to help ensure that we randomized effectively and that varibales related to the listing type were not correllated with the treatment.
 
-Finally, the fourth regression contains only the treatment variable.
+Finally, the fourth regression regresses favorable reply on the treatment, the log of list price, binary indicators for house and unknown list types (leaving apartments as the default), the log of hours between the post time and email sent, and a binary indicator indicating if the treament or control email was sent on a weekend.  Given that we have only 113 observations, we were wary of including all of our variables for fear of overfitting our regressions and to preserve degrees of freedom.  A number of our variables were sparsely populated, so we selected these variables based on their near complete population for all observations as well as likelihood of explaining variations in a poster's response.  We chose to take the log of list price due to a skew in the values.
 
 <remove summaries with working stargazer>
 ```{r}
@@ -331,7 +337,7 @@ robust.se.4 <- sqrt(diag(cov4))
 
 
 ``` {r stargazer, results='asis'}
-stargazer(model.1, model.2, model.3, model.4, se=c(robust.se.1, robust.se.2, robust.se.3, robust.se.4))
+stargazer(model.4, model.3, model.2, model.1, se=c(robust.se.4, robust.se.3, robust.se.2, robust.se.1))
 ```
 
 Examining the results of the four regression specifications, we see a fairly consistent treatment effect ranging from `r round(model.1.robust['treatmentkatie_43','Estimate'], 2)` to `r round(model.4.robust['treatmentkatie_43','Estimate'], 2)`.  This suggests that our randomization worked appropriately, and that the effect of being a 43 year old female as opposed to a 27 year old females was to reduce the probability of receiving a response to roommate listing inquiries by `r abs(round(model.4.robust['treatmentkatie_43','Estimate'], 2))` to `r abs(round(model.1.robust['treatmentkatie_43','Estimate'], 2))`.  In spite of this practical significance, however, this result lacked statistical signifiance for all four model specifications with p-values ranging from `r round(model.1.robust['treatmentkatie_43','Pr(>|t|)'], 2)` to `r round(model.4.robust['treatmentkatie_43','Pr(>|t|)'], 2)`.

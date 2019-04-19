@@ -10,13 +10,14 @@ output:
     toc: yes
   word_document:
     toc: yes
+fontsize: 11.5pt    
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r libraries, message=FALSE, warning=FALSE}
+```{r libraries, message=FALSE, warning=FALSE, echo=FALSE}
 library(data.table)
 library(stargazer)
 library(pwr)
@@ -27,13 +28,9 @@ library(gridExtra)
 ```
 
 # Introduction / Background / Motivation
-<TODO>
-- Clean up, properly cite sources
-- Clearly state research question and hypothesis
-- Expand summary at the end (<> sections)
 
-**Statement of the research question; why this is interesting to someone who is predisposed to be interested; what other people know about this; what (if any) obsrevational work has to say about this question**
 
+###--> CHRIS, can you link any of comments below to the articles under "References"? I see there's reference to NYT article but not sure if others referenced below. (You are likely most familiar w article content.)
 
 In a recent study, Zillow found that the share of adults living with a non-spouse, non-partnered roomate increased from 21% in 2005 to 30% at the end of 2017.  Whether it is due to changing attitudes about living with roommates, a neccesity due to increased rents in major cities, or some other factor, the trend is clear: more Americans are cohabitating with someone other than a spouse or partner.  While college and post-college aged urbanites often expect to have roommates, the trend is increasing for those older than 30, as a recent New York Times profile depicts.  As employment opportunities continue to cluster in dense metropolitan areas such as New York and San Francisco, an older cohort may be forced to cohabitate in order to pursue economic opportunity.
 
@@ -104,19 +101,14 @@ The following was collected by manually entering data in a Google Sheet:
 
 Favorable replies were defined as those received within 72 hours of a "Katie" email being sent and suggesting a time to show the unit or asking "Katie" for more information. An unfavorable reply stated the unit was already rented. 
 
-```
-Email Text:
+\vspace{3mm}
 
-Hi,
+![Katie Email](katie.png)
 
-I saw your listing and it sounds like it might be ideal. I'm Katie, 43 years old, employed, tend to keep my place pretty tidy, and enjoy cooking and running. When would I be able to see the room in person?
 
-Thanks, Katie
-```
 
 <TODO>
 
-**Add screenshot of email**
 - Add flow diagram
 <Add diagram of response flows (emails/listing -> replies -> favorable replies)>
  **Clear statement of the experiment**
@@ -130,8 +122,9 @@ Thanks, Katie
 
 ## ROXO Grammar
 
-We applied treatment at various time periods since our data was collected over several weeks. We did not always have completed data on the previous group prior to treating the current group due to our 72 hour waiting period. This did not concern us as we saw little possibility of interaction between subjects. We demonstrate these characteristics using ROXO grammar in the following diagram. 
+Treatment was applied at various times since our data was collected over several weeks. We did not always have completed data on the previous group (group of 10-20 emails sent) prior to treating a new group of listings due to our 72 hour waiting period. This was not a concern as we believed there to be little chance posters would interact with each other. We demonstrate these characteristics using ROXO grammar in the following diagram. 
 
+\vspace{3mm}
 ```{r echo=FALSE, fig.height=2, fig.width=3.5}
 horiz_space = .2
 diagram = data.frame("Time" = c(1,1,1+horiz_space,1+horiz_space,1+2*horiz_space,1+2*horiz_space),
@@ -173,7 +166,7 @@ d$reply_date = NULL
 d$reply_time = NULL
 ```
 
-We collected the following variables, spanning posting metadata, contents for archiving purposes, time information for temporal effects, covariates, and treatment applied. As we were not sure how clean our data would be and what would prove useful, we erred on the side of collecting more ariables and downselecting later.
+The following variables were collected: spanning posting metadata, contents for archiving purposes, time information for temporal effects, covariates, and treatment applied. As we were not sure how clean our data would be and what would prove useful, we erred on the side of collecting more variables than would likely be needed.
 
 ```{r, include=FALSE}
 sum(is.na(d$poster_age))/nrow(d)
@@ -212,7 +205,7 @@ sum(is.na(d$list_price))/nrow(d)
 |----------------------|-----------------------------------|--------------------------------------------|-----------|
 | Weekend              | Was our email sent on a weekend?  | Y                                          | 0%        |
 
-In total, we sent `r nrow(d)` emails - `r sum(d$treatment=="katie_27")` for "Katie 27"" and `r sum(d$treatment=="katie_43")` for "Katie 43". For several of these variables, we had significant missing data and decided we would not be able to make use of them in modeling. In particular, we think poster age and gender could have been predictive had they been more complete. Our hypothesis would be that all else being equal, people prefer to live with those of the same gender or age.
+In total, we sent `r nrow(d)` emails - `r sum(d$treatment=="katie_27")` for "Katie 27"" and `r sum(d$treatment=="katie_43")` for "Katie 43". Several variables were missing a significant portion of data and were note used in our models. In particular, the variables 'poster age' and 'gender' could have been predictive had more data been collected. However, most postings did not include the poster gender or age. Our hypothesis would be that all else being equal, people prefer to live with those of the same gender and/or age.
 
 <!-- This below is fake data, but I was going to see if gender was showing an increase in response rate. I'll try to come back to this or else will delete it -Mark  -->
 
@@ -233,7 +226,7 @@ After examining our logged data, we noticed four postings for which we had sent 
 **<TODO>**
 **- Describe any transformations or cleanup steps that would be interesting to a reader**
 
-```{r cleaning, include=FALSE}
+```{r cleaning, include=FALSE, message=FALSE}
 # Timestamps
 d$sent_timestamp <- as.POSIXct(d$sent_timestamp,format="%m/%d/%Y %H:%M", tz="EST")
 d$post_timestamp <- as.POSIXct(d$post_timestamp,format="%m/%d/%Y %H:%M", tz="EST")
@@ -261,7 +254,7 @@ d <- within(d, {
 })
 ```
 
-```{r}
+```{r message=FALSE, echo=FALSE}
 d[d$hours_post_to_email < 0,]
 ```
 
@@ -270,11 +263,9 @@ d[d$hours_post_to_email < 0,]
 **- Do some initial data descriptions**
 **- Include any plots that make sense and comment on them**
 
+We noticed a right-skew tendancy in our continuous variables. This is suggestive that multiplicative differences are more meaningful than additive differences. Given this observation we decided to perform log transformations to facilitate this interpretation. It also may aid our modeling because a lopsided clustering of data points at one end of the range of possible values could reduce the quality of our fit at the other end. This will to some extent even out the distribution of values at either end.
 
-
-We noticed right-skew in our continuous variables. This is suggestive that multiplicative differences are more meaningful than additive differences. Given this observation we decided to perform log transformations to facilitate this interpretation. It also may aid our modeling because a lopsided clustering of data points at one end of the range of possible values could reduce the quality of our fit at the other end. This will to some extent even out the distribution of values at either end.
-
-```{r EDA, echo=FALSE, fig.height=4.5, fig.width=7}
+```{r EDA, echo=FALSE, fig.height=4.5, fig.width=7, message=FALSE}
 h.1 <- ggplot(d, aes(x=list_price)) + geom_histogram(binwidth=100) + 
   xlab("List Price") + ylab("Count")
 h.2 <- ggplot(d, aes(x=log(list_price))) + geom_histogram(binwidth=.15) + 
@@ -303,7 +294,7 @@ To estimate our treatment effects, we employed a variety of regression specifica
 $$Y = \beta_0 + \beta_1(Treatment) + \epsilon$$
 For regressions with additional covariates, the specification included additional beta coefficients for each covariate.
 
-We used a linear regression for each of our four regression specifications, regressing the binary variable of a favorable reply on our treatment and, for the first three specifications, our chosen covariates.  While our outcome variable is binary, using a linear regression allows us to directly measure the expected change in probability of getting a favorable reply, with the coefficients of the independent variables corresponding to the probability increase or decrease.
+We used a linear regression for each of our four regression models, regressing the binary variable of a favorable reply on our treatment and, for the first three models, our chosen covariates.  While our outcome variable is binary, using a linear regression allows us to directly measure the expected change in probability of getting a favorable reply, with the coefficients of the independent variables corresponding to the probability increase or decrease.
 
 The first regression contains only the treatment variable.
 
@@ -311,10 +302,10 @@ The second regression contains treatment and the log of hours between post time 
 
 The third regression contains the treatment variable, the log of hours between post time and the email sent, and the binary indicator of the email being sent on the weekend.  This regression specification is meant to help ensure that we randomized effectively and that varibales related to the listing type were not correllated with the treatment.
 
-Finally, the fourth regression regresses favorable reply on the treatment, the log of list price, binary indicators for house and unknown list types (leaving apartments as the default), the log of hours between the post time and email sent, and a binary indicator indicating if the treament or control email was sent on a weekend.  Given that we have only 113 observations, we were wary of including all of our variables for fear of overfitting our regressions and to preserve degrees of freedom.  A number of our variables were sparsely populated, so we selected these variables based on their near complete population for all observations as well as likelihood of explaining variations in a poster's response.  We chose to take the log of list price due to a skew in the values.
+Finally, the fourth regression regresses favorable reply on the treatment, the log of list price, binary indicators for house and unknown list types (leaving apartments as the default), the log of hours between the post time and email sent, and a binary value indicating if the treament or control email was sent on a weekend.  Given that we have only 113 observations, we were wary of including all of our variables for fear of overfitting our regressions and to preserve degrees of freedom.  A number of our variables were sparsely populated, so we selected these variables based on their near-complete observations as well as likelihood of explaining variations in a poster's response.  We chose to take the log of list price due to a skew in the values.
 
 <remove summaries with working stargazer>
-```{r}
+```{r message=FALSE, include=FALSE}
 # model 1: exhaustive regression
 model.1 = lm(fave_reply ~ treatment+log(list_price)+list_type+log(hours_post_to_email)+sent_is_weekend, data=d)
 model.1.robust <-coeftest(model.1, vcov = vcovHC(model.1, type="HC"))
@@ -350,12 +341,13 @@ robust.se.4 <- sqrt(diag(cov4))
 ```
 
 
-``` {r stargazer, results='asis'}
+``` {r stargazer, results='asis', echo=FALSE}
 stargazer(model.4, model.3, model.2, model.1,
           se=c(robust.se.4, robust.se.3, robust.se.2, robust.se.1),
           float=TRUE, float.env="sidewaystable",
           header=FALSE)
 ```
+
 
 Examining the results of the four regression specifications, we see a fairly consistent treatment effect ranging from `r round(model.1.robust['treatmentkatie_43','Estimate'], 2)` to `r round(model.4.robust['treatmentkatie_43','Estimate'], 2)`.  This suggests that our randomization worked appropriately, and that the effect of being a 43 year old female as opposed to a 27 year old females was to reduce the probability of receiving a response to roommate listing inquiries by `r abs(round(model.4.robust['treatmentkatie_43','Estimate'], 2))` to `r abs(round(model.1.robust['treatmentkatie_43','Estimate'], 2))`.  In spite of this practical significance, however, this result lacked statistical signifiance for all four model specifications with p-values ranging from `r round(model.1.robust['treatmentkatie_43','Pr(>|t|)'], 2)` to `r round(model.4.robust['treatmentkatie_43','Pr(>|t|)'], 2)`.
 
@@ -367,7 +359,7 @@ In fact, the only variable to show any statistical significance in our model spe
 
 To better understand if and how our experiment might be lacking in power, we ran a 2-Sample Z-test and Power Tests. The Z-test indicates any differences in the proportions between Katie_27 and Katie_43 receiving a favorable reply. Z-test results:
 
-```{r echo=FALSE}
+```{r include=FALSE}
 
 # fave_27 <- d[ which(d$fave_reply==1 & d$treatment=='katie_27'), ]
 # sum(fave_27$fave_reply) #total = 33
@@ -379,18 +371,19 @@ res <- prop.test(x = c(33, 29), n = c(59, 54))
 res
 ```
 
-Estimated probability of success:
+**Estimated probability of success:**
 
             Katie_27    $0.559$
             Katie_43    $0.537$
             
-P-value:  $0.961$
+**P-value:**  $0.961$
 
-Confidence Interval at 95%:  $-0.179$ - $0.224$
+**Confidence Interval at 95%:**  $-0.179$ - $0.224$
 
+\vspace{2mm}
 The high p-value of $0.96$, combined with a confidence interval wide enough to have both estimates of the probability of success overlap, leads to a conclusion that the proportion of favorable replies between the two Katies' is not significantly different.
 
-We then look at two power tests, one test to calculate the number of observations we would need to obtain for *each* treatment, the other test to determine the required difference between the outcome variable (favorable replies) in order to observe a statistically significant effect from only 113 observations.
+We then ran two power tests, one to calculate the number of observations we would need to obtain for *each* treatment, the other to determine the required difference between the outcome variable (favorable replies) in order to observe a statistically significant effect from only 113 observations.
 
 ```{r include=FALSE}
 power_n <- pwr.t.test(d=0.022, sig.level=0.05, power=.8)
@@ -436,15 +429,21 @@ In addition, we also used randomization inference to examine the probability of 
 
 # Improvement Opportunities
 
-In retrospect, had we found a concrete effect in this experiment, it would have been easy (and rewarding) to claim that some level of age bias exists. The level of the effect would impact our speculation on why we believed we were seeing such an effect.
+In retrospect, had we found a concrete effect in this experiment, it would have been easy (and rewarding) to claim that some level of age bias exists. We also speculated on what would have driven an effect had we seen one.
 
-For example, if the measured effect was $15\%$, we would speculate that some level of age bias exists. If the effect were $30\%$, we would suspect that something went wrong with our experiment. Seeing a $30\%$ effect from only 113 observations is extreme. Given the Power Test indicating a necessary $37\%$ effect to be statistically significant using only 113 observations, it's unlikely we would have believed such an extreme outcome.
+If we saw an effect of $15\%$, we speculated that some level of age bias exists. While we would have wanted to conclude that the bias was a result of people generally wanting to reside with others of the same gender and age, the lack of data for these two variables would not have allowed us to draw that conclusion. Even having enough data for type of dwelling, rental price, and sent and reply timestamps, we're not convinced these variables play a determinant role in roommate selection.
+
+If an effect of $30\%$ was observed, we would conclude that something went wrong with our experiment. Seeing a $30\%$ effect from only 113 observations is extreme. Note the Power Test indicated a necessary $37\%$ effect to be statistically significant using only 113 observations. In either case, the results would be difficult to accept as valid.
 
 Moving forward, an experiment executed using a similar methodology would require rigorous preparation. Considerations such the population demographics of the area of study, unemployment rates, renting/roommate trends, supply/demand of rental units would all have an impact on the outcome. 
 
-A more appropriate method to conduct this experiment might be to randomly select participants, block by gender, and cluster by age range. Set-up an online experiment by showing participants a photo of a multi-bedroom apartment in which they live. Provide specifics about the current situation such as the amount each renter pays. Then show participants various email inquiries. Participants will indicate how likely they are to respond to the email inquiry. Email inquiries will be virtually identical with the exception of age. 
+In addition, the manual collection of data is tedious at best, and often leaves room for error. Because of this, a more controlled experiment is recommended.
 
-Although specifics would need to be flushed out in greater detail, this type of experiment may offer a more controlled manner of execution with the intent avoiding confounding variables.
+A controlled experiment could leverage an online platform that starts by providing a description of an apartment or house to participants. Participants will be informed that they have placed this ad on a free website and that they are looking for a roommmate. (The roommate would pay their equal share, etc.) Participants would then be asked to review email inquiries from potential renters and indicate how likely they (the participant) would be to respond to the email. Email inquiries would be virtually identical with the exception of age.
+
+This manner of execution would also allow for blocking by participant gender and clustering by participant age. With a large enough, randomly selected participant group, other variables such as renter gender could also be tested.
+
+Although specifics would need to be flushed out in greater detail, this type of experiment would provide a "contained" environment, potentially reduce the amount of confounding variables, and allow researchers to avoid manual data collection.
 
 # Conclusions
 
@@ -454,12 +453,6 @@ While our experiment found no effect, we believe this result is significant in i
 
 We recommend a variety of future areas of study to expand upon this research.  First and foremost, we recommend this study be replicated over a longer time period in a variety of markets, not just Indianapolis.  This could help prove the generalizability of our findings.  Second, we'd recommend testing a variety of ages.  We kept our experiment simple due to time constraints, but examining a continuous span of ages rather than simply two could elucidate more interesting results.  Finally, while we limited our experiment to examining age, this experiment could easily be replicated to examine race, gender, sexual orientation, or a variety of other demographic factors.  Perhaps some segments of these groups does face significant descrimination when searching for a roommate.  Given the feasibility of conducting these experiments on platforms such as Craigslist we would highly recommend this as an area of future research.
 
-
-**Clear statement of results**
-    In text description of your results
-    Figures and tables that support your in text description
-    Clean, clear, well articulated relationships between your theory, your hypotheses, the numbers that your models produce, and the figures you present.
-**end**
 
 # References
 

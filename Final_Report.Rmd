@@ -3,10 +3,10 @@ title: "Experimental_Methodology"
 author: "Mark Paluta, Krysten Thompson, Chris Ventura"
 date: "April 19, 2019"
 output:
-  word_document:
-    toc: yes
   pdf_document:
     number_sections: yes
+    toc: yes
+  word_document:
     toc: yes
 ---
 
@@ -16,11 +16,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r libraries, message=FALSE, warning=FALSE}
 library(data.table)
-library(corrplot)
+# library(corrplot)
 library(stargazer)
 library(pwr)
 library(sandwich)
 library(lmtest)
+library(ggplot2)
+library(gridExtra)
 ```
 
 # Introduction / Background / Motivation
@@ -170,7 +172,7 @@ sum(is.na(d$list_price))/nrow(d)
 |----------------------|-----------------------------------|--------------------------------------------|-----------|
 | Listing Type         | Type of residence                 | Apartment                                  | 8%        |
 |----------------------|-----------------------------------|--------------------------------------------|-----------|
-| Listing Price        | Price of the listing              | $450                                       | 0%        |
+| Listing Price        | Price of the listing              | 450                                       | 0%        |
 |----------------------|-----------------------------------|--------------------------------------------|-----------|
 | Posting Timestamp    | Timestamp that the post went up   | 3/21/2019 22:38                            | 0%        |
 |----------------------|-----------------------------------|--------------------------------------------|-----------|
@@ -244,31 +246,21 @@ d[d$hours_post_to_email < 0,]
 **- Do some initial data descriptions**
 **- Include any plots that make sense and comment on them**
 
->
 
-```{r EDA}
-# I think for these next two, probably plot side by side to show the effect of log transformation
 
-# h.1 <- ggplot(d, aes(x=list_price)) + geom_histogram()
-# h.2 <- ggplot(d, aes((x=log(list_price)) + geom_histogram()))
-# grid.arrange(h.1, h.2, ncol=1)
+We noticed right-skew in our continuous variables. This is suggestive that multiplicative differences are more meaningful than additive differences. Given this observation we decided to perform log transformations to facilitate this interpretation. It also may aid our modeling because a lopsided clustering of data points at one end of the range of possible values could reduce the quality of our fit at the other end. This will to some extent even out the distribution of values at either end.
 
-hist(d$list_price)
-hist(log(d$list_price))
-
-hist(log(d$hours_post_to_email))
-hist(log(d$hours_post_to_email))
-
-# create temporary dataframe casting categorical vars as 0-1 to allow corrplot
-# d_temp <- within(d_sub, {
-#   list_type = ifelse(list_type == "house", 1, 0)
-#   treatment = ifelse(treatment == "katie_27", 1, 0)
-#   #reply = ifelse(reply == "Y", 1, 0)
-#   fave_reply = ifelse(fave_reply == "Y", 1, 0)
-# })
-# correlations = cor(na.omit(d_temp[, c('list_price', 'list_type', 'treatment', 'fave_reply', "mins_post_to_email")]))
-# corrplot(correlations, method="color", type="upper", addCoef.col = "black",
-#          col=colorRampPalette(c("#BB4444",  "#FFFFFF", "#4477AA"))(200))
+```{r EDA, echo=FALSE, fig.height=4.5, fig.width=7}
+h.1 <- ggplot(d, aes(x=list_price)) + geom_histogram(binwidth=100) + 
+  xlab("List Price") + ylab("Count")
+h.2 <- ggplot(d, aes(x=log(list_price))) + geom_histogram(binwidth=.15) + 
+  xlab("Log of List Price") + ylab("Count")
+h.3 <- ggplot(d, aes(x=hours_post_to_email)) + geom_histogram(binwidth=72) + 
+  xlab("Hours Between Post & Email") + ylab("Count")
+h.4 <- ggplot(d, aes(x=log(hours_post_to_email))) + geom_histogram(binwidth=1) + 
+  xlab("Log of Hours Between Post & Email") + ylab("Count")
+grid.arrange(h.1, h.2, h.3, h.4, nrow=2,
+             top="Right-skewness and Effects of Log Transformations")
 ```
 
 # Results
@@ -375,43 +367,43 @@ The high p-value of $0.66$, combined with a confidence interval wide enough to h
 
 We then look at two power tests, one test to calculate the number of observations we would need to obtain for *each* treatment, the other test to determine the required difference between the outcome variable (favorable replies) in order to observe a statistically significant effect from only 113 observations.
 
-```{r echo=FALSE}
+```{r include=FALSE}
 power_n <- pwr.t.test(d=0.022, sig.level=0.05, power=.8)
 power_n
+power_n_num = power_n['n']
 power_d <- pwr.t.test(n=113, sig.level=0.05, power=.8)
 power_d
+power_d_eff = power_d['d']
 ```
 
-We would need an $n$ of `r round(as.numeric(power_n['n']),0)` (or 32,434 observations *per treatment*) for our results to be statistically significant. In order to be able to observe a statistically significant effect in age on the outcome variable 'favorable replies' using only 113 observations, the treatment effect would need to be `r round(as.numeric(power_d['d']),2)`, nearly twenty times our observed effect.  
+We would need `r round(as.numeric(power_n_num),0)` per treatment condition for our results to be statistically significant. In order to be able to observe a statistically significant effect in age on the outcome variable "favorable replies" using only `r nrow(d)` observations, the treatment effect would need to be `r round(as.numeric(power_d_eff),2)`, nearly twenty times our observed effect.  
 
-Power increases as $N$ size or effect size go up, and/or standard deviation is reduced.  Because of the requirement of over $32,000$ observations needed for each treatment, in addition to being unsure the treatment effect would be as high as $37\%$, we conclude that for this particular research project, we do not find any meaningful difference in the rate of favorable replies based on age. 
+Power increases as $N$ size or effect size go up, and/or standard deviation is reduced.  Because of the requirement of over $32,000$ observations needed for each treatment, in addition to being unsure the treatment effect would be as high as $37\%$ , we conclude that for this particular research project, we do not find any meaningful difference in the rate of favorable replies based on age.
 
 
 
 ## Randomization Inference
 
-```{r}
-# d_dt <- data.table(d)
-# 
-# reply_treatment <- d_dt[treatment=="katie_43", mean(fave_reply==1)]
-# reply_base <- d_dt[treatment=="katie_27", mean(fave_reply==1)]
-# ate <- reply_treatment - reply_base
-# print(ate)
+```{r include=FALSE}
+d_dt <- data.table(d)
+
+reply_treatment <- d_dt[treatment=="katie_43", mean(fave_reply==1)]
+reply_base <- d_dt[treatment=="katie_27", mean(fave_reply==1)]
+ate <- reply_treatment - reply_base
 ```
 
 
-```{r}
-# iter <- 10000
-# ate_vec <- rep(NA, length(iter))
-# for(i in 1:iter){
-# d_dt[, success_rand := sample(c(0,1), size = .N, replace=TRUE)]
-# ate_vec[i] <- as.numeric(d_dt[ , .('success_mean' = mean(fave_reply==1)), keyby =.(success_rand)][ , .('ate' = diff(success_mean, lag=1, differences=1))])
-# }
+```{r include=FALSE}
+iter <- 1000
+ate_vec <- rep(NA, length(iter))
+for(i in 1:iter){
+d_dt[, success_rand := sample(c(0,1), size = .N, replace=TRUE)]
+ate_vec[i] <- as.numeric(d_dt[ , .('success_mean' = mean(fave_reply==1)), keyby =.(success_rand)][ , .('ate' = diff(success_mean, lag=1, differences=1))])
+}
 ```
 
-```{r}
-# ri <- table(ate_vec<ate)
-# ri
+```{r include=FALSE}
+ri <- table(ate_vec<ate)
 ```
 
 In addition, we also used randomization inference to examine the probability of calculating our treatment effect by chance.  Examining the difference in means, we calculate an average treatment effect of `r round(ate,4)`.  Running randomization inference with `r iter` iteractions, we find `r as.numeric(ri[2])` random iterations with at least as significant a treatment effect as our actual.  This implies a p-value of `r as.numeric(ri[2]) / as.numeric(iter)`, a non-statistically significant result.  This is consistent with our linear regression results showing a non-statistically significant treatment effect.

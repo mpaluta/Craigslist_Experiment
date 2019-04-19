@@ -111,7 +111,7 @@ Email Text:
 
 Hi,
 
-I saw your listing and it sounds like it might be ideal. I’m Katie, 43 years old, employed, tend to keep my place pretty tidy, and enjoy cooking and running. When would I be able to see the room in person?
+I saw your listing and it sounds like it might be ideal. I'm Katie, 43 years old, employed, tend to keep my place pretty tidy, and enjoy cooking and running. When would I be able to see the room in person?
 
 Thanks, Katie
 
@@ -277,13 +277,13 @@ hist(log(d$hours_post_to_email))
 
 ## Regression
 
-To estimate our treatment effects, we employed a variety of regression specifications.  All of the regression specificaitons followed the following equations:
+To estimate our treatment effects, we employed a variety of regression specifications.  All of the regression specifications followed the following equations:
 
 <Add equation in latex>
 
 We used a linear regression for each of our four regression specifications, regressing the binary variable of a favorable reply on our treatment and, for the first three specifications, our chosen covariates.  While our outcome variable is binary, using a linear regression allows us to directly measure the expected change in probability of getting a favorable reply, with the coefficients of the independent variables corresponding to the probability increase or decrease.
 
-**<Should we reverse this?  I feel like most papers I see usually have the reverse order (treatment only first, full gamut last)>**
+**<Should we reverse this?  I feel like most papers I see usually have the reverse order (treatment only first, full gamut last)>** - agreed that seems to be the convention (Mark)
 
 The first regression regresses favorable reply on the treatment, the log of list price, binary indicators for house and unknown list types (leaving apartments as the default), the log of hours between the post time and email sent, and a binary indicator indicating if the treament or control email was sent on a weekend.  Given that we have only 113 observations, we were wary of including all of our variables for fear of overfitting our regressions and to preserve degrees of freedom.  A number of our variables were sparsely populated, so we selected these variables based on their near complete population for all observations as well as likelihood of explaining variations in a poster's response.  We chose to take the log of list price due to a skew in the values and the log of hours between post time and email sent for ease of interpretability
 
@@ -385,34 +385,34 @@ Power increases as $N$ size or effect size go up, and/or standard deviation is r
 ## Randomization Inference
 
 ```{r}
-d_dt <- data.table(d)
-
-reply_treatment <- d_dt[treatment=="katie_43", mean(fave_reply==1)]
-reply_base <- d_dt[treatment=="katie_27", mean(fave_reply==1)]
-ate <- reply_treatment - reply_base
-print(ate)
+# d_dt <- data.table(d)
+# 
+# reply_treatment <- d_dt[treatment=="katie_43", mean(fave_reply==1)]
+# reply_base <- d_dt[treatment=="katie_27", mean(fave_reply==1)]
+# ate <- reply_treatment - reply_base
+# print(ate)
 ```
 
 
 ```{r}
-iter <- 10000
-ate_vec <- rep(NA, length(iter))
-for(i in 1:iter){
-d_dt[, success_rand := sample(c(0,1), size = .N, replace=TRUE)]
-ate_vec[i] <- as.numeric(d_dt[ , .('success_mean' = mean(fave_reply==1)), keyby =.(success_rand)][ , .('ate' = diff(success_mean, lag=1, differences=1))])
-}
+# iter <- 10000
+# ate_vec <- rep(NA, length(iter))
+# for(i in 1:iter){
+# d_dt[, success_rand := sample(c(0,1), size = .N, replace=TRUE)]
+# ate_vec[i] <- as.numeric(d_dt[ , .('success_mean' = mean(fave_reply==1)), keyby =.(success_rand)][ , .('ate' = diff(success_mean, lag=1, differences=1))])
+# }
 ```
 
 ```{r}
-ri <- table(ate_vec<ate)
-ri
+# ri <- table(ate_vec<ate)
+# ri
 ```
 
 In addition, we also used randomization inference to examine the probability of calculating our treatment effect by chance.  Examining the difference in means, we calculate an average treatment effect of `r round(ate,4)`.  Running randomization inference with `r iter` iteractions, we find `r as.numeric(ri[2])` random iterations with at least as significant a treatment effect as our actual.  This implies a p-value of `r as.numeric(ri[2]) / as.numeric(iter)`, a non-statistically significant result.  This is consistent with our linear regression results showing a non-statistically significant treatment effect.
 
 
 
-# How We Would Re-do the Experiment
+# How We Would Re-do the Experiment <-- "Improvement Opportunities"?
 
 
 
@@ -421,7 +421,7 @@ In addition, we also used randomization inference to examine the probability of 
 
 As evidenced by the outputs of our various analyses, we do not find significant evidence that being a 43 year old female garners fewer responses to roommate inquires than being a 27 year old female in Indianapolis.  While we found an impact of between`r round(model.1.robust['treatmentkatie_43','Estimate'], 2)` to `r round(model.4.robust['treatmentkatie_43','Estimate'], 2)`, a practically signficant result, the result lacked statistical signficance in all four of our model specifications, as well as our randomization inference scenario.  Thus, we fail to reject our null hypothesis that both ages of females garner the same response rate.
 
-While our experiment found no effect, we believe this result is significant in its own right.  We originally set out to study age bias in roommate searches and our experiment provides evidence against such bias.  This result could mean that there is one less barrier posed by age in pursuing economic opporunties, and perhaps public policy programs should focus on more pronounced room for bias.
+While our experiment found no effect, we believe this result is significant in its own right.  We originally set out to study age bias in roommate searches and our experiment provides evidence against such bias.  This result could mean that there is one less barrier posed by age in pursuing economic opportunities, and perhaps public policy programs should focus on more pronounced room for bias.
 
 We recommend a variety of future areas of study to expand upon this research.  First and foremost, we recommend this study be replicated over a longer time period in a variety of markets, not just Indianapolis.  This could help prove the generalizability of our findings.  Second, we'd recommend testing a variety of ages.  We kept our experiment simple due to time constraints, but examining a continuous span of ages rather than simply two could elucidate more interesting results.  Finally, while we limited our experiment to examining age, this experiment could easily be replicated to examine race, gender, sexual orientation, or a variety of other demographic factors.  Perhaps some segments of these groups does face significant descrimination when searching for a roommate.  Given the feasibility of conducting these experiments on platforms such as Craigslist we would highly recommend this as an area of future research.
 

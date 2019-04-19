@@ -23,7 +23,6 @@ library(sandwich)
 library(lmtest)
 library(ggplot2)
 library(gridExtra)
-library(dplyr)
 ```
 
 # Introduction / Background / Motivation
@@ -34,12 +33,6 @@ library(dplyr)
 
 **Statement of the research question; why this is interesting to someone who is predisposed to be interested; what other people know about this; what (if any) obsrevational work has to say about this question**
 
-
-< Background info on difficulties for older people finding housing >
-- Fair housing act does not explicitly ban age discrimination in housing (https://www.justice.gov/crt/fair-housing-act-1)
-- NYT article on rise of roommates for adults over 30 (https://www.nytimes.com/2016/05/06/fashion/mens-style/adult-men-roommates-new-york.html)
-- Atlantic article on rise of roomates (https://www.theatlantic.com/family/archive/2018/08/the-strange-unique-intimacy-of-the-roommate-relationship/567296/)
-- Zillow research article on doubling up (https://www.zillow.com/research/rising-rents-more-roommates-17618/)
 
 In a recent study, Zillow found that the share of adults living with a non-spouse, non-partnered roomate increased from 21% in 2005 to 30% at the end of 2017.  Whether it is due to changing attitudes about living with roommates, a neccesity due to increased rents in major cities, or some other factor, the trend is clear: more Americans are cohabitating with someone other than a spouse or partner.  While college and post-college aged urbanites often expect to have roommates, the trend is increasing for those older than 30, as a recent New York Times profile depicts.  As employment opportunities continue to cluster in dense metropolitan areas such as New York and San Francisco, an older cohort may be forced to cohabitate in order to pursue economic opportunity.
 
@@ -268,30 +261,10 @@ grid.arrange(h.1, h.2, h.3, h.4, nrow=2,
 
 ## Summary Results
 <!-- love these next two, but thinking results section -Mark -->
-**- Two bars, side by side, with probability of favorable replies and error margins**
-
-The figure below shows the average rate of favorable replies by treatment specification:
-```{r}
-# Calculates mean, sd, se and IC
-my_sum <- d %>%
-  group_by(treatment) %>%
-  summarise( 
-    n=n(),
-    mean=mean(fave_reply),
-    sd=sd(fave_reply)
-  ) %>%
-  mutate( se=sd/sqrt(n))  %>%
-  mutate( ic=se * qt((1-0.05)/2 + .5, n-1))
-
-ggplot(my_sum) +
-  geom_bar( aes(x=treatment, y=mean), stat="identity", fill="darkgrey", alpha=0.5) +
-  geom_errorbar( aes(x=treatment, ymin=mean-ic, ymax=mean+ic), width=0.4, colour="black", alpha=0.9, size=1) +
-  ggtitle("Average Favorable Reply Rate by Treatment Specification") + xlab("Treatment Specification") + ylab("Average Favorable Reply Rate")
-
-```
-
-As you can see, "Katie 27" had a slightly higher rate of favorable replies, however both rates are well within each others' margins of error.  This is examined in greater detail in the regression section.
-
+**- Two bars, side by side, with probability of favorable replies and error margins** 
+- needs code and interpretation
+**- line chart showing probability of favorable reply based on sent time for treatment and control**
+- needs code and interpretation
 
 ## Regression
 
@@ -363,7 +336,7 @@ In fact, the only variable to show any statistical significance in our model spe
 
 To better understand if and how our experiment might be lacking in power, we ran a 2-Sample Z-test and Power Tests. The Z-test indicates any differences in the proportions between Katie_27 and Katie_43 receiving a favorable reply. Z-test results:
 
-```{r echo=FALSE, include=FALSE}
+```{r echo=FALSE}
 
 # fave_27 <- d[ which(d$fave_reply==1 & d$treatment=='katie_27'), ]
 # sum(fave_27$fave_reply) #total = 33
@@ -371,20 +344,20 @@ To better understand if and how our experiment might be lacking in power, we ran
 # fave_43 <- d[ which(d$fave_reply==1 & d$treatment=='katie_43'), ]
 # sum(fave_43$fave_reply) #total = 29
 
-res <- prop.test(x = c(33, 29), n = c(113, 113))
+res <- prop.test(x = c(33, 29), n = c(59, 54))
 res
 ```
 
 Estimated probability of success:
 
-            Katie_27    $0.292$
-            Katie_43    $0.257$
+            Katie_27    $0.559$
+            Katie_43    $0.537$
             
-P-value:  $0.655$
+P-value:  $0.961$
 
-Confidence Interval at 95%:  $-0.09$ - $0.16$
+Confidence Interval at 95%:  $-0.179$ - $0.224$
 
-The high p-value of $0.66$, combined with a confidence interval wide enough to have both estimates of the probability of success overlap, leads to a conclusion that the proportion of favorable replies between the two Katies' is not significantly different.
+The high p-value of $0.96$, combined with a confidence interval wide enough to have both estimates of the probability of success overlap, leads to a conclusion that the proportion of favorable replies between the two Katies' is not significantly different.
 
 We then look at two power tests, one test to calculate the number of observations we would need to obtain for *each* treatment, the other test to determine the required difference between the outcome variable (favorable replies) in order to observe a statistically significant effect from only 113 observations.
 
@@ -399,7 +372,7 @@ power_d_eff = power_d['d']
 
 We would need `r round(as.numeric(power_n_num),0)` per treatment condition for our results to be statistically significant. In order to be able to observe a statistically significant effect in age on the outcome variable "favorable replies" using only `r nrow(d)` observations, the treatment effect would need to be `r round(as.numeric(power_d_eff),2)`, nearly twenty times our observed effect.  
 
-Power increases as $N$ size or effect size go up, and/or standard deviation is reduced.  Because of the requirement of over $32,000$ observations needed for each treatment, in addition to being unsure the treatment effect would be as high as $37\%$ , we conclude that for this particular research project, we do not find any meaningful difference in the rate of favorable replies based on age.
+Power increases as $N$ size or effect size go up, and/or standard deviation is reduced. Because of the requirement of over $32,000$ observations needed for each treatment, in addition to being unsure the treatment effect would be as high as $37\%$ , we conclude that for this particular research project, we do not find any meaningful difference in the rate of favorable replies based on age.
 
 
 
@@ -430,11 +403,17 @@ ri <- table(ate_vec<ate)
 In addition, we also used randomization inference to examine the probability of calculating our treatment effect by chance.  Examining the difference in means, we calculate an average treatment effect of `r round(ate,4)`.  Running randomization inference with `r iter` iteractions, we find `r as.numeric(ri[2])` random iterations with at least as significant a treatment effect as our actual.  This implies a p-value of `r as.numeric(ri[2]) / as.numeric(iter)`, a non-statistically significant result.  This is consistent with our linear regression results showing a non-statistically significant treatment effect.
 
 
+# Improvement Opportunities
 
-# How We Would Re-do the Experiment <-- "Improvement Opportunities"?
+In retrospect, had we found a concrete effect in this experiment, it would have been easy (and rewarding) to claim that some level of age bias exists. The level of the effect would impact our speculation on why we believed we were seeing such an effect.
 
+For example, if the measured effect was $15\%$, we would speculate that some level of age bias exists. If the effect were $30\%$, we would suspect that something went wrong with our experiment. Seeing a $30\%$ effect from only 113 observations is extreme. Given the Power Test indicating a necessary $37\%$ effect to be statistically significant using only 113 observations, it's unlikely we would have believed such an extreme outcome.
 
+Moving forward, an experiment executed using a similar methodology would require rigorous preparation. Considerations such the population demographics of the area of study, unemployment rates, renting/roommate trends, supply/demand of rental units would all have an impact on the outcome. 
 
+A more appropriate method to conduct this experiment might be to randomly select participants, block by gender, and cluster by age range. Set-up an online experiment by showing participants a photo of a multi-bedroom apartment in which they live. Provide specifics about the current situation such as the amount each renter pays. Then show participants various email inquiries. Participants will indicate how likely they are to respond to the email inquiry. Email inquiries will be virtually identical with the exception of age. 
+
+Although specifics would need to be flushed out in greater detail, this type of experiment may offer a more controlled manner of execution with the intent avoiding confounding variables.
 
 # Conclusions
 
@@ -444,8 +423,22 @@ While our experiment found no effect, we believe this result is significant in i
 
 We recommend a variety of future areas of study to expand upon this research.  First and foremost, we recommend this study be replicated over a longer time period in a variety of markets, not just Indianapolis.  This could help prove the generalizability of our findings.  Second, we'd recommend testing a variety of ages.  We kept our experiment simple due to time constraints, but examining a continuous span of ages rather than simply two could elucidate more interesting results.  Finally, while we limited our experiment to examining age, this experiment could easily be replicated to examine race, gender, sexual orientation, or a variety of other demographic factors.  Perhaps some segments of these groups does face significant descrimination when searching for a roommate.  Given the feasibility of conducting these experiments on platforms such as Craigslist we would highly recommend this as an area of future research.
 
+
 **Clear statement of results**
     In text description of your results
     Figures and tables that support your in text description
     Clean, clear, well articulated relationships between your theory, your hypotheses, the numbers that your models produce, and the figures you present.
 **end**
+
+# References
+
+- Fair housing act does not explicitly ban age discrimination in housing (https://www.justice.gov/crt/fair-housing-act-1)
+- NYT article on rise of roommates for adults over 30 (https://www.nytimes.com/2016/05/06/fashion/mens-style/adult-men-roommates-new-york.html)
+- Atlantic article on rise of roomates (https://www.theatlantic.com/family/archive/2018/08/the-strange-unique-intimacy-of-the-roommate-relationship/567296/)
+- Zillow research article on doubling up (https://www.zillow.com/research/rising-rents-more-roommates-17618/)
+
+
+
+
+
+

@@ -170,7 +170,7 @@ sum(is.na(d$list_price))/nrow(d)
 |----------------------|-----------------------------------|--------------------------------------------|-----------|
 | Listing Type         | Type of residence                 | Apartment                                  | 8%        |
 |----------------------|-----------------------------------|--------------------------------------------|-----------|
-| Listing Price        | Price of the listing              | 450                                       | 0%        |
+| Listing Price        | Price of the listing              | 450                                        | 0%        |
 |----------------------|-----------------------------------|--------------------------------------------|-----------|
 | Posting Timestamp    | Timestamp that the post went up   | 3/21/2019 22:38                            | 0%        |
 |----------------------|-----------------------------------|--------------------------------------------|-----------|
@@ -186,21 +186,11 @@ sum(is.na(d$list_price))/nrow(d)
 |----------------------|-----------------------------------|--------------------------------------------|-----------|
 | Weekend              | Was our email sent on a weekend?  | Y                                          | 0%        |
 
-In total, we sent `r nrow(d)` emails - `r sum(d$treatment=="katie_27")` for "Katie 27"" and `r sum(d$treatment=="katie_43")` for "Katie 43". Several variables were missing a significant portion of data and were note used in our models. In particular, the variables 'poster age' and 'gender' could have been predictive had more data been collected. However, most postings did not include the poster gender or age. Our hypothesis would be that all else being equal, people prefer to live with those of the same gender and/or age.
+In total, we sent `r nrow(d)` emails - `r sum(d$treatment=="katie_27")` for "Katie 27"" and `r sum(d$treatment=="katie_43")` for "Katie 43". Several variables were missing a significant portion of data and were note used in our models. In particular, we had hoped the variables 'poster age' and 'gender' could hold predictive value and reduce the standard error on our treatment effect. Our hypothesis was be that all else being equal, people prefer to live with those of the same gender and/or age. However, gender and age were each missing in over 50% of posts, so we excluded them from any analysis.
 
-<!-- This below is fake data, but I was going to see if gender was showing an increase in response rate. I'll try to come back to this or else will delete it -Mark  -->
+Since some replies we received did contain further information on the poster, which sometimes included a name, age, or gender, we considered filling in some missing data from replies where possible. We eventually decided against this for a few reasons. First, we still would not get close to 100% completeness on those variables and would need a separate category for "Unknown". Introducing imputations from responses might even need to be modeled as a separate category distinct from the same information as obtained directly from the post. We also believe that getting more complete covariate data from _the types of people who reply to our emails_ would distort the relationship between that covariate and probability of a reply. This could bias the effect of the covariate and in turn bias our estimate of the treatment effect. Finally, since this information is not readily available to someone browsing Craigslist, it is of limited use to them because by the time they receive it, they already have their reply.
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
-library(xtable)
-gender_df = data.frame("Poster Gender" = c("Female","Male"),"Katie 27" = c(23, 55))
-#xtable(gender_df, caption="Response rate by treatment and gender")
-options(xtable.comment = FALSE)
-print(xtable(gender_df, caption="Response rate by treatment and gender"), include.rownames=FALSE)
-```
-
-Since some replies we received did contain further information, which sometimes included a name, age, or gender, we considered filling in some missing data from replies where possible. We eventually decided against this for a few reasons. First, we still would not get close to 100% completeness on those variables and would need a separate category for "Unknown" and introducing imputations from responses only might even require an additional category. We thought that getting more covariate data from _the types of people_ who were replying to our emails would distort the relationship between that covariate and probability of a reply. This could bias the effect of the covariate and in turn bias our estimate of the treatment effect. Finally, since this information is not readily available to someone browsing Craigslist, it is of limited use to them because by the time they receive it, they already have their reply.
-
-After examining our logged data, we noticed four postings for which we had sent emails from both "Katie 27" and "Katie 43", a total of eight observations in our dataset.  While a few of these emails garnered replies, in some cases for both "Katies", we removed all eight records from our dataset as we could not assess any possible spillover that may have occurred.  Given our randomization scheme, we do not believe this impacted any potential results and removing the observations was the best way to prevent any bias.
+After examining our logged data, we looked for duplicate URLs to ensure that we hadn't accidentally emailed the same poster more than once. This could have made the poster suspicious of our behavior, especially if we sent them otherwise identical emails with two different ages, but even in the event that we sent the same email twice. We did find four postings for which we had sent emails from both "Katie 27" and "Katie 43", a total of eight observations in our dataset.  While a few of these emails garnered replies -- in some cases for both "Katies" -- we removed all eight records from our dataset as we could not assess any possible spillover that may have occurred. We briefly considered only throwing out the second email and keeping the first in the event that we had already received a response to our first email before sending our second. We decided against this as we did not want to selectively throwing out data on the types of people who did not respond quickly and favorably. The effect would have on average been balanced between our two treatments, but it would have biased our point estimates of response rates. Given our randomization scheme, we believe we can throw out all instances of duplicated subjects indiscriminately without imposing any bias into our experiment.
 
 ## Data Transformations
 
@@ -234,15 +224,6 @@ d <- within(d, {
   fave_reply = ifelse(fave_reply == "Y", 1, 0)
 })
 ```
-
-```{r message=FALSE, echo=FALSE}
-d[d$hours_post_to_email < 0,]
-```
-
-
-**<TODO>**
-**- Do some initial data descriptions**
-**- Include any plots that make sense and comment on them**
 
 We noticed a right-skew tendancy in our continuous variables. This is suggestive that multiplicative differences are more meaningful than additive differences. Given this observation we decided to perform log transformations to facilitate this interpretation. It also may aid our modeling because a lopsided clustering of data points at one end of the range of possible values could reduce the quality of our fit at the other end. This will to some extent even out the distribution of values at either end.
 
@@ -284,22 +265,23 @@ As you can see, "Katie 27" had a slightly higher rate of favorable replies, howe
 
 ## Regression
 
-To estimate our treatment effects, we employed a variety of regression specifications.  All of the regression specifications followed the following equations:
+To estimate our treatment effects, we employed a variety of regression specifications.  All of the regression specifications began with the following format:
 
 $$Y = \beta_0 + \beta_1(Treatment) + \epsilon$$
 For regressions with additional covariates, the specification included additional beta coefficients for each covariate.
 
-We used a linear regression for each of our four regression models, regressing the binary variable of a favorable reply on our treatment and, for the first three models, our chosen covariates.  While our outcome variable is binary, using a linear regression allows us to directly measure the expected change in probability of getting a favorable reply, with the coefficients of the independent variables corresponding to the probability increase or decrease.
+$$Y = \beta_0 + \beta_1(Treatment) + \epsilon + \beta_2(Covariate_1) + ... + \beta_{n+1}(Covariate_n)$$
+
+We used a linear regression for each of our four regression models, regressing the binary variable of a favorable reply on our treatment and, for the final three models, our chosen covariates. While our outcome variable is binary, using a linear regression allows us to directly measure the expected change in probability of getting a favorable reply, with the coefficients of the independent variables corresponding to the probability increase or decrease.
 
 The first regression contains only the treatment variable.
 
-The second regression contains treatment and the log of hours between post time and the email being sent.  We will detail this in the next section, but we wanted to ensure the only statistically significant covariate had no impact on the treatment effect.  We chose to take the log of hours between post time and email sent for ease of interpretability.
+The second regression contains treatment and the log of hours between post time and the email being sent. We will detail this in the next section, but we wanted to ensure the only statistically significant covariate had no impact on the treatment effect.
 
-The third regression contains the treatment variable, the log of hours between post time and the email sent, and the binary indicator of the email being sent on the weekend.  This regression specification is meant to help ensure that we randomized effectively and that varibales related to the listing type were not correllated with the treatment.
+The third regression contains the treatment variable, the log of hours between post time and the email sent, and the binary indicator of the email being sent on the weekend. This regression specification is meant to help ensure that we randomized effectively and that varibales related to the listing type were not correllated with the treatment.
 
-Finally, the fourth regression regresses favorable reply on the treatment, the log of list price, binary indicators for house and unknown list types (leaving apartments as the default), the log of hours between the post time and email sent, and a binary value indicating if the treament or control email was sent on a weekend.  Given that we have only 113 observations, we were wary of including all of our variables for fear of overfitting our regressions and to preserve degrees of freedom.  A number of our variables were sparsely populated, so we selected these variables based on their near-complete observations as well as likelihood of explaining variations in a poster's response.  We chose to take the log of list price due to a skew in the values.
+Finally, the fourth regression regresses favorable reply on the treatment, the log of list price, binary indicators for house and unknown list types (leaving apartments as the base case), the log of hours between the post time and email sent, and a binary value indicating if the treament or control email was sent on a weekend. Given that we have only 113 observations, we were wary of including all of our variables for fear of overfitting our regressions and to preserve degrees of freedom. A number of our variables were sparsely populated, so we selected these variables based on their near-complete observations as well as likelihood of explaining variations in a poster's response.
 
-<remove summaries with working stargazer>
 ```{r message=FALSE, include=FALSE}
 # model 1: exhaustive regression
 model.1 = lm(fave_reply ~ treatment+log(list_price)+list_type+log(hours_post_to_email)+sent_is_weekend, data=d)
@@ -335,7 +317,6 @@ robust.se.4 <- sqrt(diag(cov4))
 #plot(model.4)
 ```
 
-
 ``` {r stargazer, results='asis', echo=FALSE}
 stargazer(model.4, model.3, model.2, model.1,
           se=c(robust.se.4, robust.se.3, robust.se.2, robust.se.1),
@@ -343,12 +324,10 @@ stargazer(model.4, model.3, model.2, model.1,
           header=FALSE)
 ```
 
-
-Examining the results of the four regression specifications, we see a fairly consistent treatment effect ranging from `r round(model.1.robust['treatmentkatie_43','Estimate'], 2)` to `r round(model.4.robust['treatmentkatie_43','Estimate'], 2)`.  This suggests that our randomization worked appropriately, and that the effect of being a 43 year old female as opposed to a 27 year old females was to reduce the probability of receiving a response to roommate listing inquiries by `r abs(round(model.4.robust['treatmentkatie_43','Estimate'], 2))` to `r abs(round(model.1.robust['treatmentkatie_43','Estimate'], 2))`.  In spite of this practical significance, however, this result lacked statistical signifiance for all four model specifications with p-values ranging from `r round(model.1.robust['treatmentkatie_43','Pr(>|t|)'], 2)` to `r round(model.4.robust['treatmentkatie_43','Pr(>|t|)'], 2)`.
+Examining the results of the four regression specifications, we see a fairly consistent treatment effect ranging from `r round(model.1.robust['treatmentkatie_43','Estimate'], 2)` to `r round(model.4.robust['treatmentkatie_43','Estimate'], 2)`. This suggests that our randomization worked appropriately, and that the measured effect of being a 43 year old female as opposed to a 27 year old females was to reduce the probability of receiving a response to roommate listing inquiries by `r abs(round(model.4.robust['treatmentkatie_43','Estimate'], 2))` to `r abs(round(model.1.robust['treatmentkatie_43','Estimate'], 2))`.  In spite of this practical significance, however, this result lacked statistical signifiance for all four model specifications with p-values ranging from `r round(model.1.robust['treatmentkatie_43','Pr(>|t|)'], 2)` to `r round(model.4.robust['treatmentkatie_43','Pr(>|t|)'], 2)`. Therefore, our effect was statistically indistinguishable from zero.
 
 **<Please check my interpretation of the log values>**
-In fact, the only variable to show any statistical significance in our model specifications is the log of hours between the post time and the sending of our treatment or control email. The coefficients of `r round(model.1.robust['log(hours_post_to_email)','Estimate'], 2)` to `r round(model.3.robust['log(hours_post_to_email)','Estimate'], 2)` suggests that a 100% increase in response time corresponds with a `r round(model.1.robust['log(hours_post_to_email)','Estimate'], 2)*100`% to `r round(model.3.robust['log(hours_post_to_email)','Estimate'], 2)*100`% change in likelihood of a response.
-
+In fact, the only variable to show any statistical significance in our model specifications is the log of hours between the post time and the sending of our treatment or control email. The coefficients of `r round(model.1.robust['log(hours_post_to_email)','Estimate'], 2)` to `r round(model.3.robust['log(hours_post_to_email)','Estimate'], 2)` suggests that a 100% increase in response time corresponds with a `r round(model.1.robust['log(hours_post_to_email)','Estimate'], 2)*100`% to `r round(model.3.robust['log(hours_post_to_email)','Estimate'], 2)*100`% change in likelihood of a response. However, we should also be careful not to place too much weight in the significance of a covariate. Since hours from post to initial email was not the variable we experimented on, it is possible that it is being confounded by unmeasured variables. 
 
 ## Power Calculations
 
@@ -378,7 +357,7 @@ res
 \vspace{2mm}
 The high p-value of $0.96$, combined with a confidence interval wide enough to have both estimates of the probability of success overlap, leads to a conclusion that the proportion of favorable replies between the two Katies' is not significantly different.
 
-We then ran two power tests, one to calculate the number of observations we would need to obtain for *each* treatment, the other to determine the required difference between the outcome variable (favorable replies) in order to observe a statistically significant effect from only 113 observations.
+We then ran two power tests, one to calculate the number of observations we would need to obtain for *each* treatment given this effect size, the other to determine the required difference between the outcome variable (favorable replies) in order to observe a statistically significant effect from only 113 observations.
 
 ```{r include=FALSE}
 power_n <- pwr.t.test(d=0.022, sig.level=0.05, power=.8)
@@ -389,11 +368,9 @@ power_d
 power_d_eff = power_d['d']
 ```
 
-We would need `r format(as.integer(power_n_num), scientific=FALSE)` subjects per treatment condition for our results to be statistically significant. In order to be able to observe a statistically significant effect in age on the outcome variable "favorable replies" using only `r nrow(d)` observations, the treatment effect would need to be `r round(as.numeric(power_d_eff),2)`, nearly twenty times our observed effect.  
+We would need `r format(as.integer(power_n_num), scientific=FALSE)` subjects per treatment condition for our results to be statistically significant. In order to be able to observe a statistically significant effect in age on the outcome variable "favorable replies" using only `r nrow(d)` observations, the treatment effect would need to be `r round(as.numeric(power_d_eff),2)`, nearly twenty times our observed effect. We anticipated a much larger effect size, which contributed to our lack of power in this experiment. 
 
 Power increases as sample size or effect size go up, and/or standard deviation is reduced. Because of the requirement of over $32,000$ observations needed for each treatment, in addition to being unsure the treatment effect would be as high as $37\%$ , we conclude that for this particular research project, we do not find any meaningful difference in the rate of favorable replies based on age.
-
-
 
 ## Randomization Inference
 
@@ -429,7 +406,7 @@ In hindsight, there may be confounding factors contributing to the effect such a
 
 When it comes to experiments of this nature, there are often unmeasurable factors that come in to play such as the lifestyle of the person looking for a roommate, unconscious bias toward dissimilar age groups, as well unconscious gender bias. Stereotypes such as "men are messier than women" exist as human perception and sometimes partial truths.
 
-# Improvement Opportunities
+# Improvement Opportunities7
 
 In retrospect, had we found a concrete effect in this experiment, it would have been easy (and rewarding) to claim that some level of age bias exists. We also speculated on what would have driven an effect had we seen one.
 

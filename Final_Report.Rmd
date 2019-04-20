@@ -87,11 +87,10 @@ Emails were sent only to listings that were new, or listings that had been poste
 
 Only responses received within 72 hours were flagged as a legitimate reply. We chose 72 hours as an appropriate window of time to account for people on vacation, a family emergency, or work-related event prevent them from responding within 24 hours. If a response to our treatment arrived after 72 hours, the response was considered a "no reply".
 
-See Figure 1 for an example of the email template.
+Below is an example of the email template.
 
-\vspace{3mm}
-
-![Katie Email](katie.png)
+\vspace{2mm}
+![](katie.png)
 
 
 ## ROXO Grammar
@@ -308,10 +307,10 @@ robust.se.4 <- sqrt(diag(cov4))
 plot(model.1)
 #plot(model.2)
 #plot(model.3)
-plot(model.4)
+#plot(model.4)
 ```
 
-``` {r stargazer, results='asis', echo=FALSE}
+``` {r stargazer, results='asis', echo=FALSE, fig.pos="H"}
 stargazer(model.4, model.3, model.2, model.1,
           se=list(robust.se.4, robust.se.3, robust.se.2, robust.se.1),
           float=TRUE, float.env="sidewaystable",
@@ -320,7 +319,7 @@ stargazer(model.4, model.3, model.2, model.1,
 
 Examining the results of the four regression specifications, we see a fairly consistent treatment effect ranging from `r round(model.1.robust['treatmentkatie_43','Estimate'], 2)` to `r round(model.4.robust['treatmentkatie_43','Estimate'], 2)`. This suggests that our randomization worked appropriately, and that the measured effect of being a 43 year old female as opposed to a 27 year old females was to reduce the probability of receiving a response to roommate listing inquiries by `r abs(round(model.4.robust['treatmentkatie_43','Estimate'], 2))` to `r abs(round(model.1.robust['treatmentkatie_43','Estimate'], 2))`.  In spite of this practical significance, however, this result lacked statistical significance for all four model specifications with p-values ranging from `r round(model.1.robust['treatmentkatie_43','Pr(>|t|)'], 2)` to `r round(model.4.robust['treatmentkatie_43','Pr(>|t|)'], 2)`.  Therefore, our effect was statistically indistinguishable from zero.  While, as we state in the next section, we did not find evidence of heteroskedasticity, we report heteroskedasticity-robust standard errors in an abundance of caution.
 
-Further examining the results of our models, the only variable to show any statistical significance in our model specifications is the log of hours between the post time and the sending of our treatment or control email. The coefficient of roughly `r round(model.1.robust['log(hours_post_to_email)','Estimate'], 2)` suggests that a 100% increase in response time corresponds with roughly a `r round(model.1.robust['log(hours_post_to_email)','Estimate'], 2)*100`% change in likelihood of a response. However, we should also be careful not to place too much weight in the significance of a covariate. Since hours from post to initial email was not the variable we experimented on, it is possible that it is being confounded by unmeasured variables. 
+Further examining the results of our models, the only variable to show any statistical significance in our model specifications is the log of hours between the post time and the sending of our treatment or control email. The coefficient of roughly `r round(model.1.robust['log(hours_post_to_email)','Estimate'], 2)` suggests that a 100% increase in response time corresponds with roughly a `r round(model.1.robust['log(hours_post_to_email)','Estimate'], 2)*100`% change in likelihood of a response. However, we should also be careful not to place too much weight in the significance of a covariate. Since hours from post to initial email was not the variable we experimented on, it is possible that it is being confounded by unmeasured variables.
 
 ### OLS Assumptions
 
@@ -367,7 +366,7 @@ res
             
 **P-value:**  $0.961$
 
-**Confidence Interval at 95%:**  $-0.179$ - $0.224$
+**Confidence Interval at 95%:**  $(-0.179, 0.224)$
 
 \vspace{2mm}
 The high p-value of $0.96$, combined with a confidence interval wide enough to have both estimates of the probability of success overlap, leads to a conclusion that the proportion of favorable replies between the two Katies' is not significantly different.
@@ -375,7 +374,8 @@ The high p-value of $0.96$, combined with a confidence interval wide enough to h
 ```{r include=FALSE}
 power_p <- pwr.t.test(d=0.022, sig.level = 0.05, n=113)
 ```
-In fact, running a simple power test reveals a power of only `r round(power_p$power,2)`, suggesting the probability of finding an effect, given the setup of the experiment, was only `r round(power_p$power,2)`.  To identify what would have been necessary to detect a statistically significant effect, we then ran two power tests, one to calculate the number of observations we would need to obtain for *each* treatment given this effect size, the other to determine the required difference between the outcome variable (favorable replies) in order to observe a statistically significant effect from only 113 observations.
+
+In fact, running a simple power test reveals a power of only `r round(power_p$power,2)`, suggesting the probability of finding an effect given that there truly was one was only `r round(power_p$power,2)`. To identify what would have been necessary to detect a statistically significant effect, we then ran two power tests, one to calculate the number of observations we would need to obtain for *each* treatment given this effect size, the other to determine the required difference between the outcome variable (favorable replies) in order to observe a statistically significant effect from only 113 observations.
 
 ```{r include=FALSE}
 power_n <- pwr.t.test(d=0.022, sig.level=0.05, power=.8)
@@ -449,7 +449,7 @@ This does not suggest that age bias doesn't exist. In the manner with which our 
 Math calculation for Conclusion:
 
 - 113 new, non-sexual, no 'male only' listings in a two-week period
-- 26 weeks per year
+- 26 two-week-periods per year
 - Estimate 2,938 listings per year to receive a "Katie" email
 - 64,000 observations needed / 2,938 listings per year = 
 **22.7 years of listings**
@@ -458,7 +458,9 @@ Math calculation for Conclusion:
 
 # References
 [1] Bretz, Lauren, _As Rents Rise, More Renters Turn to Doubling Up_(2017), https://www.zillow.com/research/rising-rents-more-roommates-17618/
+
 [2] Pappu, Sridhar, _Age 31 and Up, With Roommates. You Got a Problem With That?_(2016), https://www.nytimes.com/2016/05/06/fashion/mens-style/adult-men-roommates-new-york.html
+
 [3] Department of Justice, _Fair Housing Act_, (https://www.justice.gov/crt/fair-housing-act-1)
 
 

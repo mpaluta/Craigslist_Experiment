@@ -87,6 +87,8 @@ The following procedure was implemented each time emails were sent:
 
 Emails were sent only to listings that were new, or listings that had been posted days or weeks ago but were "refreshed" in the postings list. The data was collected manually in a spreadsheet. See the Data section for all variables collected.
 
+Only responses received within 72 hours were flagged as a legitimate reply. We chose 72-hours as an appropriate window of time to account for people on vacation or possibly having something at work prevent them from responding within 24 hours. If a response to our treatment arrived after 72 hours, the response was considered a "no reply".
+
 \vspace{3mm}
 
 ![Katie Email](katie.png)
@@ -425,11 +427,21 @@ Although specifics would need to be flushed out in greater detail, this type of 
 
 # Conclusions
 
-As evidenced by the outputs of our various analyses, we do not find significant evidence that being a 43 year old female garners fewer responses to roommate inquires than being a 27 year old female in Indianapolis.  While we found an impact of between`r round(model.1.robust['treatmentkatie_43','Estimate'], 2)` to `r round(model.4.robust['treatmentkatie_43','Estimate'], 2)`, a practically signficant result, the result lacked statistical signficance in all four of our model specifications, as well as our randomization inference scenario.  Thus, we fail to reject our null hypothesis that both ages of females garner the same response rate.
+Based on the outputs of the regression analyses, we are unable to draw conclusions from this experiement. Although an impact between`r round(model.1.robust['treatmentkatie_43','Estimate'], 2)` to `r round(model.4.robust['treatmentkatie_43','Estimate'], 2)` was observed, the result lacked statistical signficance in all four of the models, as well as in our randomization inference scenario. In addition, the Power Tests indicated the need for either a much larger sample size, or a more pronounced effect. Over the course of approximately two weeks of data collection, we identified 113 roommate-wanted listings that conformed to our specifications (noted under Experiment Design). If we were to gather 32K+ observations for each treatment (or 64,000 observations total) in order to draw definitive conclusions, it would take 22.7 years of replying to roommate listings in Indianapolis (see math in Appendix). 
 
-While our experiment found no effect, we believe this result is significant in its own right.  We originally set out to study age bias in roommate searches and our experiment provides evidence against such bias.  This result could mean that there is one less barrier posed by age in pursuing economic opportunities, and perhaps public policy programs should focus on more pronounced room for bias.
+This does not suggest that age bias doesn't exist. In the manner with which our experiment was executed, we agree that it is not possible to reach a conclusion and that another method to test for age, such as the design outlined under Improvement Opportunities be explored.
 
-We recommend a variety of future areas of study to expand upon this research.  First and foremost, we recommend this study be replicated over a longer time period in a variety of markets, not just Indianapolis.  This could help prove the generalizability of our findings.  Second, we'd recommend testing a variety of ages.  We kept our experiment simple due to time constraints, but examining a continuous span of ages rather than simply two could elucidate more interesting results.  Finally, while we limited our experiment to examining age, this experiment could easily be replicated to examine race, gender, sexual orientation, or a variety of other demographic factors.  Perhaps some segments of these groups does face significant descrimination when searching for a roommate.  Given the feasibility of conducting these experiments on platforms such as Craigslist we would highly recommend this as an area of future research.
+
+# Appendix
+
+Math calculation for Conclusion:
+
+- 113 new, non-sexual, no 'male only' listings in a two week period
+- 26 weeks per year
+- Estimate 2,938 listings per year to receive a "Katie" email
+- 64,000 observations needed / 2,938 listings per year = 
+**22.7 years of listings**
+
 
 
 # References

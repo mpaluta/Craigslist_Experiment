@@ -242,8 +242,10 @@ grid.arrange(h.1, h.2, h.3, h.4, nrow=2,
 # Results
 
 ## Summary Results
+
 The figure below shows the average rate of favorable replies by treatment specification:
-```{r, echo=FALSE}
+
+```{r echo=FALSE, fig.height=4, fig.width=5}
 # Calculates mean, sd, se and IC
 my_sum <- d %>%
   group_by(treatment) %>%
@@ -257,7 +259,7 @@ my_sum <- d %>%
 ggplot(my_sum) +
   geom_bar( aes(x=treatment, y=mean), stat="identity", fill="darkgrey", alpha=0.5) +
   geom_errorbar( aes(x=treatment, ymin=mean-ic, ymax=mean+ic), width=0.4, colour="black", alpha=0.9, size=1) +
-  ggtitle("Average Favorable Reply Rate by Treatment Specification") + xlab("Treatment Specification") + ylab("Average Favorable Reply Rate")
+  ggtitle("Favorable Reply Rate by Treatment Specification") + xlab("Treatment Specification") + ylab("Average Favorable Reply Rate")
 ```
 
 As you can see, "Katie 27" had a slightly higher rate of favorable replies, however both rates are well within each others' margins of error.  This is examined in greater detail in the regression section.

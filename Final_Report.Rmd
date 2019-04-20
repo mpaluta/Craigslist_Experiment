@@ -26,7 +26,7 @@ library(lmtest)
 library(ggplot2)
 library(gridExtra)
 library(dplyr)
-library(mcprofile)
+library(car)
 ```
 
 # Introduction / Background / Motivation
@@ -329,10 +329,13 @@ In fact, the only variable to show any statistical significance in our model spe
 
 ### OLS Assumptions
 
-It's important to call out any OLS assumptions that may have been violated. We addressed our decision to use linear regression with a binary outcome above, and we can confirm that random samplying occurred. Through exploratory data analysis, we confirmed there was no multi-collinearity across covariates, and if there was, only one covariate was chosen such that the models did not contain collinear independent variables.
+It's important to call out any OLS assumptions that may have been violated. We addressed our decision to use linear regression with a binary outcome above, and we can confirm that random samplying occurred. Through exploratory data analysis, we observed some multi-collinearity across date/time covariates, but only one covariate was chosen such that the models did not contain collinear independent variables.
 
-Several covariates, such as "housing type" and "date/time" are not linear. 
+The Zero Conditional Mean and Homoskadastic assumptions holds in the Residuals vs Fitted plot below. The flat line at the 0 (horizontal) axis reflects zero conditional mean and we can see the data is not heteroskadastic.
 
+To test for autocorrelation, we ran a Durbin-Watson Test below. The p-value of $0.16$ suggests there is no autocorrelation in our model.
+
+Several covariates, such as "housing type" and "date/time" are not linear. And as seen in the Normal Q-Q plot, most of the values do not fit the dotted line violating the Normality of Residuals requirement.
 
 ```{r message=FALSE, echo=FALSE}
 par(mfrow=c(2,2))
@@ -340,25 +343,8 @@ plot(model.1)
 ```
 
 ```{r}
-durbinWatsonTest(mod.1)
+durbinWatsonTest(model.1)
 ```
-
-
-**---> Below is list I pulled for reference only**
-
-A1. The linear regression model is “linear in parameters.”
-
-A2. There is a random sampling of observations.
-
-A3. The conditional mean should be zero.
-
-A4. There is no multi-collinearity (or perfect collinearity).
-
-A5. Spherical errors: There is homoscedasticity and no autocorrelation
-
-A6: Optional Assumption: Error terms should be normally distributed.
-
-
 
 
 ## Power Calculations

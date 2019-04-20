@@ -17,7 +17,7 @@ fontsize: 11.5pt
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r libraries, message=FALSE, warning=FALSE, echo=FALSE}
+```{r libraries, message=FALSE, warning=FALSE, include=FALSE}
 library(data.table)
 library(stargazer)
 library(pwr)
@@ -32,19 +32,19 @@ library(gridExtra)
 
 ###--> CHRIS, can you link any of comments below to the articles under "References"? I see there's reference to NYT article but not sure if others referenced below. (You are likely most familiar w article content.)
 
-In a recent study, Zillow found that the share of adults living with a non-spouse, non-partnered roomate increased from 21% in 2005 to 30% at the end of 2017.  Whether it is due to changing attitudes about living with roommates, a neccesity due to increased rents in major cities, or some other factor, the trend is clear: more Americans are cohabitating with someone other than a spouse or partner.  While college and post-college aged urbanites often expect to have roommates, the trend is increasing for those older than 30, as a recent New York Times profile depicts.  As employment opportunities continue to cluster in dense metropolitan areas such as New York and San Francisco, an older cohort may be forced to cohabitate in order to pursue economic opportunity.
+In a recent study, Zillow found that the share of adults living with a non-spouse, non-partnered roomate increased from 21% in 2005 to 30% at the end of 2017. Whether it is due to changing attitudes about living with roommates, a necessity due to increased rents in major cities, or some other factor, the trend is clear: more Americans are cohabitating with someone other than a spouse or partner. While college and post-college aged urbanites often expect to have roommates, the trend is increasing for those older than 30, as a recent New York Times profile depicts. As employment opportunities continue to cluster in dense metropolitan areas such as New York and San Francisco, an older cohort may be forced to cohabitate in order to pursue economic opportunity.
 
 In spite of this demographic trend, little research has been done into whether the age of someone looking for a place to live with roommates has an impact on their options. As the New York Times profile describes, until recently the idea of having a roommate was mostly relegated to young professionals in their 20s.  
 
 # Research Question
 
-Through this experiment, we set out to determine if older professionals face a penalty when seeking a roommate compared to someone in their 20's. We investigate whether age affects replies when responding to a roommate posting on Craigslist as well as determine whether age has a statistically significant effect on the odds of what we will call a "favorable reply".
+Through this experiment, we set out to determine if post-college-age professionals face an age penalty when seeking a roommate. We investigate whether age affects the probability of receiving a "favorable reply" when responding to a roommate request posting on Craigslist. We hypothesized that older ages would generally receive fewer favorable replies than those shortly past typical college-age (mid-20's).
 
-We hypothesized that the "older" age treatment would receive fewer favorable replies than the 20-something treatment.
+We define favorable replies as those that are 1) received within 72 hours of sending our email and 2) asking for more information or requesting next steps. An unfavorable reply is any other reply received within 72 hours. No response received within 72 hours is considered no reply.
 
 # Initial Experiment Idea
 
-Our initial experiment sought to test gender and age discrimination. We created two email accounts for a female (age 27 and 43) and two email accounts for a male (age 27 and 43). We chose these ages to avoid round numbers, have the 20-something presumed to be slightly more established in a job/career than someone who is 22 or 23 (too young of an age may have caused bias), and have the older person at least over 40 but not yet 45 which may have caused bias as well. 
+Our initial experiment sought to test both gender and age discrimination as well as their interaction. We created two email accounts for a female (age 27 and 43) and two email accounts for a male (age 27 and 43). We chose these ages to avoid round numbers, have the younger persona sufficiently past typical college-age, and have the older person over 40. We wanted the two treatment ages to be sufficiently different as to measure a material difference without pushing the extremes of old or young to still reasonably represent a large portion of roommate seekers.
 
 We also considered running this experiment in several different cities in the U.S. to see if regional differences exist in terms of gender and age.
 
@@ -54,67 +54,45 @@ A pilot was conducted in early March to determine if our initial approach would 
 
 We conducted a pilot study for three days to identify any problems that may surface during the full study. Major learnings from the pilot:
 
-1) VPNs are not particularly compatible with Craigslist. We initially wanted to use a VPN to avoid being flagged as fraud by Craigslist. We tried several but Craigslist still flagged us as fraud when it detected that we changed email accounts.
+1) VPNs are difficult to use with Craigslist. We initially wanted to use a VPN to avoid being flagged as fraud by Craigslist. We tried several popular VPNs but Craigslist blocked all the associated IP addresses from sending emails.
 
 2) Google sent one of our accounts a notification that it was shutting down one of our accounts because it detected the account was not being used according to Google's guidelines. 
 
-We concluded that maintaining too many personas would be difficult due to concerns about tripping fraud algorithms and getting our real IP addresses blacklisted. As a result, we decided to limit our full study to 2 females. We theorized that females would have higher response rates due to more postings seeming open to females, and suspected that males would be more willing to live with females than females would be willing to live with males.
+We did not want to send email on behalf of multiple personas from the same IP address for fear of fraud detection. Given this preference and the additional learnings from the pilot study, we concluded that maintaining too many personas would be difficult and decided to limit our full study to 2 personas. We were able to each imitate two separate individuals by using separate devices and/or a different internet connection such as a mobile hotspots. We anticipated that response rates could be low and thought females might have higher response rates, so we elected to use two female personas. In the pilot study, more postings seemed to be open to females, and we speculated that males would be more willing to live with females than females would be willing to live with males.
 
 Not all posts seemed appropriate for measuring effects on a typical applicant. The following types of posts were excluded:
 
-  a) Posts with sexual implications including "friends with benefits", reduced rent in exchange for sex 
+  a) Posts with sexual implications including "friends with benefits" or reduced rent in exchange for sex 
   b) Posts soliciting other favors in exchange for reduced rent such as babysitting
-  c) Posts for students only
+  c) Posts for students only (as we were targeting a conclusion for working professionals)
   d) Posts without an email option or posts explicitly stating that email replies will not be answered
   e) Posts explicitly stating males only
-
 
 # Experiment Design & Methodology
 
 The experiment design consisted of sending emails to listings under the Craigslist heading "Housing" > "Rooms/Shared". 
 
-In order to be able to draw conclusions that could be somewhat generalized to the US population, Indianapolis was selected as the target market. Indianapolis is a mid-sized city located in the midwest.
+In order to be able to draw conclusions with the best chance of generalizing to the US population, Indianapolis was selected as the target market. Indianapolis is a mid-sized city located in the midwest.
 
-We sent emails every 1-3 days across a two-week time period. We were not particularly concerned with the exact times or days we collected data since we were collecting a number of time-based covariates in order to not confound our results with any temporal effects. We did make a conscious effort to cover a broad range of variation in our temporal covariates by sending emails on every day of the week and including a mix of morning, afternoon, and evening collections.
+We sent emails every 1-3 days across a two-week time period. We were not particularly concerned with the exact times or days we collected data since we were collecting a number of time-based covariates in order to model any temporal effects. We did make a conscious effort to cover a broad range of variation in our temporal covariates by sending emails on every day of the week and including a mix of morning, afternoon, and evening collections.
 
 The following procedure was implemented each time emails were sent:
 
 1) Open all postings since the last data collection (or fewer if subject to time constraints, prioritizing recent postings)
 2) Go through each post and throw out any that meet our exclusion criteria
 3) Obtain a count of the number of included (remaining) posts
-4) Randomize an array assigning these posts to our 27-year-old or 43-year-old persona.
+4) Generate an array of this length, randomly assigning each post to one of our treatment conditions with equal probability
 5) Beginning with the first persona in the array, log into their respective email account and begin emailing posters in order from most recent to least, recording covariates as we go
 
-Emails were sent only to listings that were new, or listings that had been posted days or weeks ago but were "refreshed" in the postings list. There were only 1-2 instances where a listing received more than one "Katie" email and those observations were deleted from the final data set.
-
-A short R radomization function was run prior to sending out the emails to radomize which listing would receive a "Katie 27" or "Katie 43" email.
-
-The following was collected by manually entering data in a Google Sheet:
-
-- Listing post date/time
-- Email sent to listing date/time
-- Treatment (Katie 27, Katie 43)
-- Listing title, description
-- Age and gender of person posting listing (if avail)
-- Whether reply was received, along with date/time
-- Whether reply was favorable
-
-Favorable replies were defined as those received within 72 hours of a "Katie" email being sent and suggesting a time to show the unit or asking "Katie" for more information. An unfavorable reply stated the unit was already rented. 
+Emails were sent only to listings that were new, or listings that had been posted days or weeks ago but were "refreshed" in the postings list. The data was collected manually in a spreadsheet. See the Data section for all variables collected.
 
 \vspace{3mm}
 
 ![Katie Email](katie.png)
 
 
-
-<TODO>
-
-- Add flow diagram
-<Add diagram of response flows (emails/listing -> replies -> favorable replies)>
  **Clear statement of the experiment**
 
-    Research Design (using ROXO grammar)
-    Randomization engineering
     Experimental materials (e.g. treatment materials)
     Measurement of variables
     Modeling choices
@@ -122,7 +100,9 @@ Favorable replies were defined as those received within 72 hours of a "Katie" em
 
 ## ROXO Grammar
 
-Treatment was applied at various times since our data was collected over several weeks. We did not always have completed data on the previous group (group of 10-20 emails sent) prior to treating a new group of listings due to our 72 hour waiting period. This was not a concern as we believed there to be little chance posters would interact with each other. We demonstrate these characteristics using ROXO grammar in the following diagram. 
+Treatment was applied at various times since our data was collected over several weeks. We did not always have observations on the previous cohort (group of 10-20 emails sent) prior to treating a new cohort due to our impossed 72 hour waiting period. This was not a concern as we believed there to be little chance posters would interact with each other.
+
+We demonstrate these characteristics using ROXO grammar in the following diagram. Each cohort is randomized, treated, and sometime over the next 72 hours observed.
 
 \vspace{3mm}
 ```{r echo=FALSE, fig.height=2, fig.width=3.5}
@@ -166,7 +146,7 @@ d$reply_date = NULL
 d$reply_time = NULL
 ```
 
-The following variables were collected: spanning posting metadata, contents for archiving purposes, time information for temporal effects, covariates, and treatment applied. As we were not sure how clean our data would be and what would prove useful, we erred on the side of collecting more variables than would likely be needed.
+The following variables were collected: spanning posting metadata, contents (for archiving purposes), time information (for temporal effects), covariates, and treatment applied. As we were not sure how clean our data would be and what would prove useful, we erred on the side of collecting more variables than would likely be needed.
 
 ```{r, include=FALSE}
 sum(is.na(d$poster_age))/nrow(d)
@@ -426,6 +406,13 @@ ri <- table(ate_vec<ate)
 
 In addition, we also used randomization inference to examine the probability of calculating our treatment effect by chance.  Examining the difference in means, we calculate an average treatment effect of `r round(ate,4)`.  Running randomization inference with `r iter` iteractions, we find `r as.numeric(ri[2])` random iterations with at least as significant a treatment effect as our actual.  This implies a p-value of `r as.numeric(ri[2]) / as.numeric(iter)`, a non-statistically significant result.  This is consistent with our linear regression results showing a non-statistically significant treatment effect.
 
+## Causal Mechanism
+
+If an effect existed, it could have been driven by a multitude of factors. Had we been able to capture age and gender of every poster, we may have seen a "birds of a feather flock together" pattern.
+
+In hindsight, there may be confounding factors contributing to the effect such as demographics in Indianapolis, supply and demand of housing, and the unemployment rate (to name a few.)
+
+When it comes to experiments of this nature, there are often unmeasurable factors that come in to play such as the lifestyle of the person looking for a roommate, unconscious bias toward dissimilar age groups, as well unconscious gender bias. Stereotypes such as "men are messier than women" exist as human perception and sometimes partial truths.
 
 # Improvement Opportunities
 

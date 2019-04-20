@@ -25,6 +25,7 @@ library(sandwich)
 library(lmtest)
 library(ggplot2)
 library(gridExtra)
+library(dplyr)
 ```
 
 # Introduction / Background / Motivation
@@ -32,9 +33,9 @@ library(gridExtra)
 
 ###--> CHRIS, can you link any of comments below to the articles under "References"? I see there's reference to NYT article but not sure if others referenced below. (You are likely most familiar w article content.)
 
-In a recent study, Zillow found that the share of adults living with a non-spouse, non-partnered roomate increased from 21% in 2005 to 30% at the end of 2017. Whether it is due to changing attitudes about living with roommates, a necessity due to increased rents in major cities, or some other factor, the trend is clear: more Americans are cohabitating with someone other than a spouse or partner. While college and post-college aged urbanites often expect to have roommates, the trend is increasing for those older than 30, as a recent New York Times profile depicts. As employment opportunities continue to cluster in dense metropolitan areas such as New York and San Francisco, an older cohort may be forced to cohabitate in order to pursue economic opportunity.
+In a recent study, Zillow found that the share of adults living with a non-spouse, non-partnered roomate increased from 21% in 2005 to 30% at the end of 2017^[1]^. Whether it is due to changing attitudes about living with roommates, a necessity due to increased rents in major cities, or some other factor, the trend is clear: more Americans are cohabitating with someone other than a spouse or partner. While college and post-college aged urbanites often expect to have roommates, the trend is increasing for those older than 30, as a recent New York Times profile depicts^[2]^. As employment opportunities continue to cluster in dense metropolitan areas such as New York and San Francisco, an older cohort may be forced to cohabitate in order to pursue economic opportunity.
 
-In spite of this demographic trend, little research has been done into whether the age of someone looking for a place to live with roommates has an impact on their options. As the New York Times profile describes, until recently the idea of having a roommate was mostly relegated to young professionals in their 20s.  
+In spite of this demographic trend, little research has been done into whether the age of someone looking for a place to live with roommates has an impact on their options. As the New York Times profile describes, until recently the idea of having a roommate was mostly relegated to young professionals in their 20s^[2]^.  Furthermore, in the United States it is not illegal to descriminate on the basis of age for roommates and other housing related decisions^[3]^.  If age presents itself as a barrier to finding a roommate or living situation, this could add an additional obstacle to those beyond "typical" roommate age wishing to move to a dense metropolitan area to pursue employment, impacting economic opportunity for this age cohort.  With this implication, our study sought to examine the existence of possible age bias in responses to roommate inquiries.
 
 # Research Question
 
@@ -261,11 +262,25 @@ grid.arrange(h.1, h.2, h.3, h.4, nrow=2,
 # Results
 
 ## Summary Results
-<!-- love these next two, but thinking results section -Mark -->
-**- Two bars, side by side, with probability of favorable replies and error margins** 
-- needs code and interpretation
-**- line chart showing probability of favorable reply based on sent time for treatment and control**
-- needs code and interpretation
+The figure below shows the average rate of favorable replies by treatment specification:
+```{r}
+# Calculates mean, sd, se and IC
+my_sum <- d %>%
+  group_by(treatment) %>%
+  summarise( 
+    n=n(),
+    mean=mean(fave_reply),
+    sd=sd(fave_reply)
+  ) %>%
+  mutate( se=sd/sqrt(n))  %>%
+  mutate( ic=se * qt((1-0.05)/2 + .5, n-1))
+ggplot(my_sum) +
+  geom_bar( aes(x=treatment, y=mean), stat="identity", fill="darkgrey", alpha=0.5) +
+  geom_errorbar( aes(x=treatment, ymin=mean-ic, ymax=mean+ic), width=0.4, colour="black", alpha=0.9, size=1) +
+  ggtitle("Average Favorable Reply Rate by Treatment Specification") + xlab("Treatment Specification") + ylab("Average Favorable Reply Rate")
+```
+
+As you can see, "Katie 27" had a slightly higher rate of favorable replies, however both rates are well within each others' margins of error.  This is examined in greater detail in the regression section.
 
 ## Regression
 
@@ -442,11 +457,9 @@ We recommend a variety of future areas of study to expand upon this research.  F
 
 
 # References
-
-- Fair housing act does not explicitly ban age discrimination in housing (https://www.justice.gov/crt/fair-housing-act-1)
-- NYT article on rise of roommates for adults over 30 (https://www.nytimes.com/2016/05/06/fashion/mens-style/adult-men-roommates-new-york.html)
-- Atlantic article on rise of roomates (https://www.theatlantic.com/family/archive/2018/08/the-strange-unique-intimacy-of-the-roommate-relationship/567296/)
-- Zillow research article on doubling up (https://www.zillow.com/research/rising-rents-more-roommates-17618/)
+[1] Bretz, Lauren, _As Rents Rise, More Renters Turn to Doubling Up_(2017), https://www.zillow.com/research/rising-rents-more-roommates-17618/
+[2] Pappu, Sridhar, _Age 31 and Up, With Roommates. You Got a Problem With That?_(2016), https://www.nytimes.com/2016/05/06/fashion/mens-style/adult-men-roommates-new-york.html
+[3] Department of Justice, _Fair Housing Act_, (https://www.justice.gov/crt/fair-housing-act-1)
 
 
 

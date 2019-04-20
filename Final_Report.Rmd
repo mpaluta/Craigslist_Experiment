@@ -368,7 +368,7 @@ power_d
 power_d_eff = power_d['d']
 ```
 
-We would need `r format(as.integer(power_n_num), scientific=FALSE)` subjects per treatment condition for our results to be statistically significant. In order to be able to observe a statistically significant effect in age on the outcome variable "favorable replies" using only `r nrow(d)` observations, the treatment effect would need to be `r round(as.numeric(power_d_eff),2)`, nearly twenty times our observed effect. We anticipated a much larger effect size, which contributed to our lack of power in this experiment. 
+We would need `r format(as.integer(power_n_num), scientific=FALSE)` subjects per treatment condition for our results to be statistically significant. In order to be able to observe a statistically significant effect in age on the outcome variable "favorable replies" using only `r nrow(d)` observations, the treatment effect would need to be `r round(as.numeric(power_d_eff),2)`, approximately 10-15 times our observed effect size, depending on the regression specification used. We anticipated a much larger effect size, which contributed to our lack of power in this experiment. 
 
 Power increases as sample size or effect size go up, and/or standard deviation is reduced. Because of the requirement of over $32,000$ observations needed for each treatment, in addition to being unsure the treatment effect would be as high as $37\%$ , we conclude that for this particular research project, we do not find any meaningful difference in the rate of favorable replies based on age.
 
@@ -381,7 +381,6 @@ reply_treatment <- d_dt[treatment=="katie_43", mean(fave_reply==1)]
 reply_base <- d_dt[treatment=="katie_27", mean(fave_reply==1)]
 ate <- reply_treatment - reply_base
 ```
-
 
 ```{r include=FALSE}
 iter <- 1000
@@ -396,7 +395,7 @@ ate_vec[i] <- as.numeric(d_dt[ , .('success_mean' = mean(fave_reply==1)), keyby 
 ri <- table(ate_vec<ate)
 ```
 
-In addition, we also used randomization inference to examine the probability of calculating our treatment effect by chance.  Examining the difference in means, we calculate an average treatment effect of `r round(ate,4)`.  Running randomization inference with `r iter` iteractions, we find `r as.numeric(ri[2])` random iterations with at least as significant a treatment effect as our actual.  This implies a p-value of `r as.numeric(ri[2]) / as.numeric(iter)`, a non-statistically significant result.  This is consistent with our linear regression results showing a non-statistically significant treatment effect.
+In addition, we also used randomization inference to examine the probability of calculating our treatment effect by chance. Randomization inference has the advantage of being a non-parametric method and as a result doesn't rely on large sample sizes or central limit theorem assumptions. Examining the difference in means, we calculate an average treatment effect of `r round(ate,4)`.  Running randomization inference with `r iter` iteractions, we find `r as.numeric(ri[2])` random iterations with at least as significant a treatment effect as our actual.  This implies a p-value of `r as.numeric(ri[2]) / as.numeric(iter)`, a non-statistically significant result.  This is consistent with our linear regression results showing a non-statistically significant treatment effect and is roughly on the same order of magnitude as our p-values from regression and our z-test.
 
 ## Causal Mechanism
 

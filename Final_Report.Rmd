@@ -30,9 +30,6 @@ library(dplyr)
 
 # Introduction / Background / Motivation
 
-
-###--> CHRIS, can you link any of comments below to the articles under "References"? I see there's reference to NYT article but not sure if others referenced below. (You are likely most familiar w article content.)
-
 In a recent study, Zillow found that the share of adults living with a non-spouse, non-partnered roomate increased from 21% in 2005 to 30% at the end of 2017^[1]^. Whether it is due to changing attitudes about living with roommates, a necessity due to increased rents in major cities, or some other factor, the trend is clear: more Americans are cohabitating with someone other than a spouse or partner. While college and post-college aged urbanites often expect to have roommates, the trend is increasing for those older than 30, as a recent New York Times profile depicts^[2]^. As employment opportunities continue to cluster in dense metropolitan areas such as New York and San Francisco, an older cohort may be forced to cohabitate in order to pursue economic opportunity.
 
 In spite of this demographic trend, little research has been done into whether the age of someone looking for a place to live with roommates has an impact on their options. As the New York Times profile describes, until recently the idea of having a roommate was mostly relegated to young professionals in their 20s^[2]^.  Furthermore, in the United States it is not illegal to descriminate on the basis of age for roommates and other housing related decisions^[3]^.  If age presents itself as a barrier to finding a roommate or living situation, this could add an additional obstacle to those beyond "typical" roommate age wishing to move to a dense metropolitan area to pursue employment, impacting economic opportunity for this age cohort.  With this implication, our study sought to examine the existence of possible age bias in responses to roommate inquiries.
@@ -41,7 +38,7 @@ In spite of this demographic trend, little research has been done into whether t
 
 Through this experiment, we set out to determine if post-college-age professionals face an age penalty when seeking a roommate. We investigate whether age affects the probability of receiving a "favorable reply" when responding to a roommate request posting on Craigslist. We hypothesized that older ages would generally receive fewer favorable replies than those shortly past typical college-age (mid-20's).
 
-We define favorable replies as those that are 1) received within 72 hours of sending our email and 2) asking for more information or requesting next steps. An unfavorable reply is any other reply received within 72 hours. No response received within 72 hours is considered no reply.
+We define favorable replies as those that are 1) received within 72 hours of sending our email and 2) asking for more information or requesting next steps. An unfavorable reply is any other reply received within 72 hours. If a response is not received within 72 hours it is considered no reply.
 
 # Initial Experiment Idea
 
@@ -73,7 +70,7 @@ Not all posts seemed appropriate for measuring effects on a typical applicant. T
 
 The experiment design consisted of sending emails to listings under the Craigslist heading "Housing" > "Rooms/Shared". 
 
-In order to be able to draw conclusions with the best chance of generalizing to the US population, Indianapolis was selected as the target market. Indianapolis is a mid-sized city located in the midwest.
+In order to be able to draw conclusions with the best chance of generalizing to the US population, Indianapolis was selected as the target market. Indianapolis is a mid-sized city located in the midwest with demographics similar to the United States as a whole.
 
 We sent emails every 1-3 days across a two-week time period. We were not particularly concerned with the exact times or days we collected data since we were collecting a number of time-based covariates in order to model any temporal effects. We did make a conscious effort to cover a broad range of variation in our temporal covariates by sending emails on every day of the week and including a mix of morning, afternoon, and evening collections.
 
@@ -105,7 +102,7 @@ Only responses received within 72 hours were flagged as a legitimate reply. We c
 
 Treatment was applied at various times since our data was collected over several weeks. We did not always have observations on the previous cohort (group of 10-20 emails sent) prior to treating a new cohort due to our impossed 72 hour waiting period. This was not a concern as we believed there to be little chance posters would interact with each other.
 
-We demonstrate these characteristics using ROXO grammar in the following diagram. Each cohort is randomized, treated, and sometime over the next 72 hours observed.
+We demonstrate these characteristics using ROXO grammar in the following diagram. Each cohort is randomized, treated, and, sometime over the next 72 hours, observed.
 
 \vspace{3mm}
 ```{r echo=FALSE, fig.height=2, fig.width=3.5}
@@ -246,7 +243,7 @@ grid.arrange(h.1, h.2, h.3, h.4, nrow=2,
 
 ## Summary Results
 The figure below shows the average rate of favorable replies by treatment specification:
-```{r}
+```{r, echo=FALSE}
 # Calculates mean, sd, se and IC
 my_sum <- d %>%
   group_by(treatment) %>%
@@ -313,20 +310,27 @@ model.4.robust <- coeftest(model.4, vcov = vcovHC(model.4, type="HC"))
 cov4 <- vcovHC(model.4, type = "HC")
 robust.se.4 <- sqrt(diag(cov4))
 
-#plot(model.1)
+plot(model.1)
 #plot(model.2)
 #plot(model.3)
-#plot(model.4)
+plot(model.4)
 ```
+
+```{r}
+robust.se.1
+```
+
 
 ``` {r stargazer, results='asis', echo=FALSE}
 stargazer(model.4, model.3, model.2, model.1,
-          se=c(robust.se.4, robust.se.3, robust.se.2, robust.se.1),
+          se=list(robust.se.4, robust.se.3, robust.se.2, robust.se.1),
           float=TRUE, float.env="sidewaystable",
           header=FALSE)
 ```
 
-Examining the results of the four regression specifications, we see a fairly consistent treatment effect ranging from `r round(model.1.robust['treatmentkatie_43','Estimate'], 2)` to `r round(model.4.robust['treatmentkatie_43','Estimate'], 2)`. This suggests that our randomization worked appropriately, and that the measured effect of being a 43 year old female as opposed to a 27 year old females was to reduce the probability of receiving a response to roommate listing inquiries by `r abs(round(model.4.robust['treatmentkatie_43','Estimate'], 2))` to `r abs(round(model.1.robust['treatmentkatie_43','Estimate'], 2))`.  In spite of this practical significance, however, this result lacked statistical signifiance for all four model specifications with p-values ranging from `r round(model.1.robust['treatmentkatie_43','Pr(>|t|)'], 2)` to `r round(model.4.robust['treatmentkatie_43','Pr(>|t|)'], 2)`. Therefore, our effect was statistically indistinguishable from zero.
+**<OLS assumptions>**
+
+Examining the results of the four regression specifications, we see a fairly consistent treatment effect ranging from `r round(model.1.robust['treatmentkatie_43','Estimate'], 2)` to `r round(model.4.robust['treatmentkatie_43','Estimate'], 2)`. This suggests that our randomization worked appropriately, and that the measured effect of being a 43 year old female as opposed to a 27 year old females was to reduce the probability of receiving a response to roommate listing inquiries by `r abs(round(model.4.robust['treatmentkatie_43','Estimate'], 2))` to `r abs(round(model.1.robust['treatmentkatie_43','Estimate'], 2))`.  In spite of this practical significance, however, this result lacked statistical signifiance for all four model specifications with p-values ranging from `r round(model.1.robust['treatmentkatie_43','Pr(>|t|)'], 2)` to `r round(model.4.robust['treatmentkatie_43','Pr(>|t|)'], 2)`.  Therefore, our effect was statistically indistinguishable from zero.  We report robust standard errors to ensure that our reported standard errors are robust to any heteroskedasticity found in the data.
 
 **<Please check my interpretation of the log values>**
 In fact, the only variable to show any statistical significance in our model specifications is the log of hours between the post time and the sending of our treatment or control email. The coefficients of `r round(model.1.robust['log(hours_post_to_email)','Estimate'], 2)` to `r round(model.3.robust['log(hours_post_to_email)','Estimate'], 2)` suggests that a 100% increase in response time corresponds with a `r round(model.1.robust['log(hours_post_to_email)','Estimate'], 2)*100`% to `r round(model.3.robust['log(hours_post_to_email)','Estimate'], 2)*100`% change in likelihood of a response. However, we should also be careful not to place too much weight in the significance of a covariate. Since hours from post to initial email was not the variable we experimented on, it is possible that it is being confounded by unmeasured variables. 

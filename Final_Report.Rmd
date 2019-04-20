@@ -29,7 +29,7 @@ library(dplyr)
 library(car)
 ```
 
-# Introduction / Background / Motivation
+# Introduction
 
 In a recent study, Zillow found that the share of adults living with a non-spouse, non-partnered roomate increased from 21% in 2005 to 30% at the end of 2017^[1]^. Whether it is due to changing attitudes about living with roommates, a necessity due to increased rents in major cities, or some other factor, the trend is clear: more Americans are cohabitating with someone other than a spouse or partner. While college and post-college aged urbanites often expect to have roommates, the trend is increasing for those older than 30, as a recent New York Times profile depicts^[2]^. As employment opportunities continue to cluster in dense metropolitan areas such as New York and San Francisco, an older cohort may be forced to cohabitate in order to pursue economic opportunity.
 
@@ -86,6 +86,8 @@ The following procedure was implemented each time emails were sent:
 Emails were sent only to listings that were new, or listings that had been posted days or weeks ago but were "refreshed" in the postings list. The data was collected manually in a spreadsheet. See the Data section for all variables collected.
 
 Only responses received within 72 hours were flagged as a legitimate reply. We chose 72 hours as an appropriate window of time to account for people on vacation, a family emergency, or work-related event prevent them from responding within 24 hours. If a response to our treatment arrived after 72 hours, the response was considered a "no reply".
+
+See Figure 1 for an example of the email template.
 
 \vspace{3mm}
 
@@ -333,7 +335,11 @@ It's important to call out any OLS assumptions that may have been violated. We a
 
 The Zero Conditional Mean and Homoskadastic assumptions holds in the Residuals vs Fitted plot below. The flat line at the 0 (horizontal) axis reflects zero conditional mean and we can see the data is not heteroskadastic.
 
-To test for autocorrelation, we ran a Durbin-Watson Test below. The p-value of $0.16$ suggests there is no autocorrelation in our model.
+```{r include=FALSE}
+dw_p = durbinWatsonTest(model.1)[['p']]
+```
+
+While we do not strictly qualify as panel data because each cohort represents entirely new subjects, we do have a time component to our data. It is possible that the market has hot and cold trends and response rates could be correlated with previous response rates, so just to be safe, we will test for autocorrelation. We ran a Durbin-Watson Test, which gave a p-value of `r round(dw_p,2)`, suggesting there is no autocorrelation in our model.
 
 Several covariates, such as "housing type" and "date/time" are not linear. And as seen in the Normal Q-Q plot, most of the values do not fit the dotted line violating the Normality of Residuals requirement.
 
@@ -342,9 +348,7 @@ par(mfrow=c(2,2))
 plot(model.1)
 ```
 
-```{r}
-durbinWatsonTest(model.1)
-```
+
 
 
 ## Power Calculations

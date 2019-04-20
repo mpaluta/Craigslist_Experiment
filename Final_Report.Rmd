@@ -311,11 +311,6 @@ plot(model.1)
 plot(model.4)
 ```
 
-```{r}
-robust.se.1
-```
-
-
 ``` {r stargazer, results='asis', echo=FALSE}
 stargazer(model.4, model.3, model.2, model.1,
           se=list(robust.se.4, robust.se.3, robust.se.2, robust.se.1),
@@ -326,14 +321,13 @@ stargazer(model.4, model.3, model.2, model.1,
 
 Examining the results of the four regression specifications, we see a fairly consistent treatment effect ranging from `r round(model.1.robust['treatmentkatie_43','Estimate'], 2)` to `r round(model.4.robust['treatmentkatie_43','Estimate'], 2)`. This suggests that our randomization worked appropriately, and that the measured effect of being a 43 year old female as opposed to a 27 year old females was to reduce the probability of receiving a response to roommate listing inquiries by `r abs(round(model.4.robust['treatmentkatie_43','Estimate'], 2))` to `r abs(round(model.1.robust['treatmentkatie_43','Estimate'], 2))`.  In spite of this practical significance, however, this result lacked statistical signifiance for all four model specifications with p-values ranging from `r round(model.1.robust['treatmentkatie_43','Pr(>|t|)'], 2)` to `r round(model.4.robust['treatmentkatie_43','Pr(>|t|)'], 2)`.  Therefore, our effect was statistically indistinguishable from zero.  While, as we state in the next section, we did not find evidence of heteroskedasticity, we report heteroskedasticity-robust standard errors in an abuncance of caution.
 
-**<Please check my interpretation of the log values>**
-Examining the results of our models, the only variable to show any statistical significance in our model specifications is the log of hours between the post time and the sending of our treatment or control email. The coefficients of `r round(model.1.robust['log(hours_post_to_email)','Estimate'], 2)` to `r round(model.3.robust['log(hours_post_to_email)','Estimate'], 2)` suggests that a 100% increase in response time corresponds with a `r round(model.1.robust['log(hours_post_to_email)','Estimate'], 2)*100`% to `r round(model.3.robust['log(hours_post_to_email)','Estimate'], 2)*100`% change in likelihood of a response. However, we should also be careful not to place too much weight in the significance of a covariate. Since hours from post to initial email was not the variable we experimented on, it is possible that it is being confounded by unmeasured variables. 
+Examining the results of our models, the only variable to show any statistical significance in our model specifications is the log of hours between the post time and the sending of our treatment or control email. The coefficient of roughly `r round(model.1.robust['log(hours_post_to_email)','Estimate'], 2)` suggests that a 100% increase in response time corresponds with roughly a `r round(model.1.robust['log(hours_post_to_email)','Estimate'], 2)*100`% change in likelihood of a response. However, we should also be careful not to place too much weight in the significance of a covariate. Since hours from post to initial email was not the variable we experimented on, it is possible that it is being confounded by unmeasured variables. 
 
 ### OLS Assumptions
 
 It's important to call out any OLS assumptions that may have been violated. We addressed our decision to use linear regression with a binary outcome above, and we can confirm that random samplying occurred. Through exploratory data analysis, we observed some multi-collinearity across date/time covariates, but only one covariate was chosen such that the models did not contain collinear independent variables.
 
-The Zero Conditional Mean and Homoskadastic assumptions holds in the Residuals vs Fitted plot below. The flat line at the 0 (horizontal) axis reflects zero conditional mean and we can see the data is not heteroskadastic.
+The Residuals vs Fitted plot shows a slight trend. This isn't extremely surprising given that we are fitting a binary outcome and know that there is some nonlinearity present. We will be cautious with our inference from regression and will make sure it agrees with our other analysis methods. The homoskadasticity assumption appears to hold although it is a little hard to determine again due to the nonlinearity. We used heteroskedasticity-robust standard errors for our inference in an abundance of caution.
 
 ```{r include=FALSE}
 dw_p = durbinWatsonTest(model.1)[['p']]

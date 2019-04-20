@@ -270,7 +270,7 @@ To estimate our treatment effects, we employed a variety of regression specifica
 $$Y = \beta_0 + \beta_1(Treatment) + \epsilon$$
 For regressions with additional covariates, the specification included additional beta coefficients for each covariate.
 
-$$Y = \beta_0 + \beta_1(Treatment) + \epsilon + \beta_2(Covariate_1) + ... + \beta_{n+1}(Covariate_n)$$
+$$Y = \beta_0 + \beta_1(Treatment) + \epsilon + \beta_2(Covariate_1) + ... + \beta_{n+1}(Covariate_n) + \epsilon$$
 
 We used a linear regression for each of our four regression models, regressing the binary variable of a favorable reply on our treatment and, for the final three models, our chosen covariates. While our outcome variable is binary, using a linear regression allows us to directly measure the expected change in probability of getting a favorable reply, with the coefficients of the independent variables corresponding to the probability increase or decrease.
 
@@ -286,28 +286,28 @@ Finally, the fourth regression regresses favorable reply on the treatment, the l
 # model 1: exhaustive regression
 model.1 = lm(fave_reply ~ treatment+log(list_price)+list_type+log(hours_post_to_email)+sent_is_weekend, data=d)
 model.1.robust <-coeftest(model.1, vcov = vcovHC(model.1, type="HC"))
-model.1.robust
+#model.1.robust
 cov1 <- vcovHC(model.1, type = "HC")
 robust.se.1 <- sqrt(diag(cov1))
 
 # model 2: removing list type and price (rationale - maybe correlated with weekend sent)
 model.2 = lm(fave_reply ~ treatment+log(hours_post_to_email)+sent_is_weekend, data=d)
 model.2.robust <-coeftest(model.2, vcov = vcovHC(model.2, type="HC"))
-model.2.robust
+#model.2.robust
 cov2 <- vcovHC(model.2, type = "HC")
 robust.se.2 <- sqrt(diag(cov2))
 
 # model 3: only treatment and hours_post_to_email (the only significant covariate)
 model.3 = lm(fave_reply ~ treatment+log(hours_post_to_email), data=d)
 model.3.robust <- coeftest(model.3, vcov = vcovHC(model.3, type="HC"))
-model.3.robust
+#model.3.robust
 cov3 <- vcovHC(model.3, type = "HC")
 robust.se.3 <- sqrt(diag(cov3))
 
 # model 4: treatment only
 model.4 = lm(fave_reply ~ treatment, data=d)
 model.4.robust <- coeftest(model.4, vcov = vcovHC(model.4, type="HC"))
-model.4.robust
+#model.4.robust
 cov4 <- vcovHC(model.4, type = "HC")
 robust.se.4 <- sqrt(diag(cov4))
 
@@ -357,7 +357,10 @@ res
 \vspace{2mm}
 The high p-value of $0.96$, combined with a confidence interval wide enough to have both estimates of the probability of success overlap, leads to a conclusion that the proportion of favorable replies between the two Katies' is not significantly different.
 
-We then ran two power tests, one to calculate the number of observations we would need to obtain for *each* treatment given this effect size, the other to determine the required difference between the outcome variable (favorable replies) in order to observe a statistically significant effect from only 113 observations.
+```{r include=FALSE}
+power_p <- pwr.t.test(d=0.022, sig.level = 0.05, n=113)
+```
+In fact, running a simple power test reveals a power of only `r round(power_p$power,2)`, suggesting the probability of finding an effect, given the setup of the esperiment, was only `r round(power_p$power,2)`.  To identify what would have been necessary to detect a statistically significant effect, we then ran two power tests, one to calculate the number of observations we would need to obtain for *each* treatment given this effect size, the other to determine the required difference between the outcome variable (favorable replies) in order to observe a statistically significant effect from only 113 observations.
 
 ```{r include=FALSE}
 power_n <- pwr.t.test(d=0.022, sig.level=0.05, power=.8)
